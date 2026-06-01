@@ -1,0 +1,38 @@
+{
+  "name": "@satuwaktu/database",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "author": "Rizky Maulana",
+  "license": "MIT",
+  "devDependencies": {
+    "@satuwaktu/eslint-config": "workspace:*",
+    "@satuwaktu/typescript-config": "workspace:*",
+    "@types/bcrypt": "^6.0.0",
+    "eslint": "^9.39.1",
+    "prisma": "^7.8.0",
+    "tsx": "^4.22.3",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.21.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "require": "./dist/index.js"
+    }
+  }
+}

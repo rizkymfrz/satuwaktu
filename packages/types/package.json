@@ -1,0 +1,19 @@
+{
+  "name": "@satuwaktu/types",
+  "version": "1.0.0",
+  "scripts": {
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "author": "Rizky Maulana",
+  "license": "MIT",
+  "devDependencies": {
+    "@satuwaktu/eslint-config": "workspace:*",
+    "@satuwaktu/typescript-config": "workspace:*",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.2"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

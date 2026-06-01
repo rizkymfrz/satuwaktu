@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum FragmenType {
+  PHOTO
+  VIDEO
+  TEXT
+}
+
+enum Mood {
+  HANGAT
+  SUNYI
+  RIUH
+  SENDU
+  TERANG
+}
+
+enum ResonansiType {
+  BEEN_HERE
+  BEING_HERE
+  MISS_THIS
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String
+  password  String
+  fragmens  Fragmen[]
+  createdAt DateTime  @default(now())
+}
+
+model Chapter {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  description String?
+  coverUrl    String?
+  order       Int
+  fragmens    Fragmen[]
+  createdAt   DateTime  @default(now())
+}
+
+model Fragmen {
+  id          String        @id @default(cuid())
+  title       String?
+  caption     String?
+  type        FragmenType
+  mood        Mood?
+  takenAt     DateTime
+  isPrivate   Boolean       @default(false)
+  isPinned    Boolean       @default(false)
+  isDraft     Boolean       @default(false)
+  author      User          @relation(fields: [authorId], references: [id])
+  authorId    String
+  chapter     Chapter?      @relation(fields: [chapterId], references: [id])
+  chapterId   String?
+  media       Media[]
+  resonansis  Resonansi[]
+  titipanKata TitipanKata[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Media {
+  id        String  @id @default(cuid())
+  url       String
+  mimeType  String
+  size      Int
+  width     Int?
+  height    Int?
+  order     Int     @default(0)
+  fragmen   Fragmen @relation(fields: [fragmenId], references: [id], onDelete: Cascade)
+  fragmenId String
+
+  @@index([fragmenId, order])
+}
+
+model Resonansi {
+  id           String        @id @default(cuid())
+  type         ResonansiType
+  fragmen      Fragmen       @relation(fields: [fragmenId], references: [id], onDelete: Cascade)
+  fragmenId    String
+  visitorToken String
+  createdAt    DateTime      @default(now())
+
+  @@unique([fragmenId, visitorToken])
+}
+
+model TitipanKata {
+  id           String   @id @default(cuid())
+  content      String
+  fragmen      Fragmen  @relation(fields: [fragmenId], references: [id], onDelete: Cascade)
+  fragmenId    String
+  visitorToken String
+  createdAt    DateTime @default(now())
+}

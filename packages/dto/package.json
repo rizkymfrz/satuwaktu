@@ -1,0 +1,29 @@
+{
+  "name": "@satuwaktu/dto",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "author": "Rizky Maulana",
+  "license": "MIT",
+  "dependencies": {
+    "@satuwaktu/types": "workspace:*",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2"
+  },
+  "devDependencies": {
+    "@satuwaktu/eslint-config": "workspace:*",
+    "@satuwaktu/typescript-config": "workspace:*",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.2"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "require": "./dist/index.js"
+    }
+  }
+}

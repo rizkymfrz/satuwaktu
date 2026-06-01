@@ -1,0 +1,9 @@
+export { LoginDto } from "./auth/login.dto";
+export { RegisterDto } from "./auth/register.dto";
+export { CreateFragmenDto } from "./fragmen/create-fragmen.dto";
+export { UpdateFragmenDto } from "./fragmen/update-fragmen.dto";
+export { QueryFragmenDto } from "./fragmen/query-fragmen.dto";
+export { CreateResonansiDto } from "./resonansi/create-resonansi.dto";
+export { CreateTitipanKataDto } from "./titipan-kata/create-titipan-kata.dto";
+export { CreateChapterDto } from "./chapter/create-chapter.dto";
+export { UpdateChapterDto } from "./chapter/update-chapter.dto";
