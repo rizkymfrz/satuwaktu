@@ -3,3 +3,11 @@ packages:
   - "packages/*"
 allowBuilds:
   unrs-resolver: true
+supportedArchitectures:
+  os:
+    - current
+    - win32
+  cpu:
+    - current
+    - x64
+    - arm64

@@ -1,4 +1,5 @@
 import { Icon } from "@/components/ui/icon";
+import { ShadowBox } from "@/components/ui/shadow-box";
 import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 import * as AccordionPrimitive from "@rn-primitives/accordion";
@@ -16,12 +17,14 @@ import Animated, {
 
 function Accordion({
   children,
+  className,
   ref,
   ...props
 }: Omit<React.ComponentProps<typeof AccordionPrimitive.Root>, "asChild">) {
   return (
     <LayoutAnimationConfig skipEntering>
       <AccordionPrimitive.Root
+        className={cn("w-full flex-col gap-4", className)}
         {...(props as AccordionPrimitive.RootProps)}
         asChild={Platform.OS !== "web"}
       >
@@ -41,22 +44,38 @@ function AccordionItem({
 }: React.ComponentProps<typeof AccordionPrimitive.Item>) {
   return (
     <AccordionPrimitive.Item
-      className={cn(
-        "border-border border-b",
-        Platform.select({ web: "last:border-b-0" }),
-        className,
-      )}
       value={value}
       asChild={Platform.OS !== "web"}
       {...props}
     >
       <Animated.View
-        className="native:overflow-hidden"
         layout={Platform.select({ native: LinearTransition.duration(200) })}
       >
-        {children}
+        <AccordionItemBox className={className}>{children}</AccordionItemBox>
       </Animated.View>
     </AccordionPrimitive.Item>
+  );
+}
+
+function AccordionItemBox({
+  className,
+  children,
+}: {
+  className?: string;
+  children?: React.ReactNode;
+}) {
+  const { isExpanded } = AccordionPrimitive.useItemContext();
+
+  return (
+    <ShadowBox
+      size={isExpanded ? "sm" : "md"}
+      contentClassName={cn(
+        "rounded-none border-2 border-border bg-background overflow-hidden",
+        className,
+      )}
+    >
+      {children}
+    </ShadowBox>
   );
 }
 
@@ -86,19 +105,15 @@ function AccordionTrigger({
   );
 
   return (
-    <TextClassContext.Provider
-      value={cn(
-        "text-left text-sm font-medium",
-        Platform.select({ web: "group-hover:underline" }),
-      )}
-    >
+    <TextClassContext.Provider value="text-left text-base font-head">
       <AccordionPrimitive.Header>
         <AccordionPrimitive.Trigger {...props} asChild>
           <Trigger
             className={cn(
-              "flex-row items-start justify-between gap-4 rounded-md py-4 disabled:opacity-50",
+              "flex-row items-center justify-between gap-4 px-4 py-3",
+              isExpanded && "bg-muted/40",
               Platform.select({
-                web: "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 outline-none transition-all hover:underline focus-visible:ring-[3px] disabled:pointer-events-none [&[data-state=open]>svg]:rotate-180",
+                web: "focus-visible:outline-primary flex flex-1 cursor-pointer outline-none transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2",
               }),
               className,
             )}
@@ -108,12 +123,7 @@ function AccordionTrigger({
               <Icon
                 as={ChevronDown}
                 size={16}
-                className={cn(
-                  "text-muted-foreground shrink-0",
-                  Platform.select({
-                    web: "pointer-events-none translate-y-0.5 transition-transform duration-200",
-                  }),
-                )}
+                className="text-muted-foreground shrink-0"
               />
             </Animated.View>
           </Trigger>
@@ -130,10 +140,10 @@ function AccordionContent({
 }: React.ComponentProps<typeof AccordionPrimitive.Content>) {
   const { isExpanded } = AccordionPrimitive.useItemContext();
   return (
-    <TextClassContext.Provider value="text-sm">
+    <TextClassContext.Provider value="text-sm text-muted-foreground font-sans">
       <AccordionPrimitive.Content
         className={cn(
-          "overflow-hidden",
+          "overflow-hidden bg-card",
           Platform.select({
             web: isExpanded ? "animate-accordion-down" : "animate-accordion-up",
           }),
@@ -144,7 +154,7 @@ function AccordionContent({
           exiting={Platform.select({
             native: FadeOutUp.duration(200).reduceMotion(ReduceMotion.System),
           })}
-          className={cn("pb-4", className)}
+          className={cn("px-4 pt-2 pb-4", className)}
         >
           {children}
         </Animated.View>

@@ -3,6 +3,8 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@expo-google-fonts/archivo-black": "^0.4.1",
+    "@expo-google-fonts/space-grotesk": "^0.4.1",
     "@expo/ui": "~57.0.18",
     "@rn-primitives/accordion": "^1.5.2",
     "@rn-primitives/alert-dialog": "^1.5.2",
@@ -48,6 +50,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
+    "react-native-css-interop": "0.2.6",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
@@ -63,7 +66,7 @@
     "@types/react": "~19.2.2",
     "babel-preset-expo": "^57.0.11",
     "eslint": "^9.24.0",
-    "eslint-config-expo": "~10.0.0",
+    "eslint-config-expo": "~57.0.2",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "typescript": "~6.0.3"
   },
