@@ -1,8 +1,8 @@
-import babelParser from "@babel/eslint-parser";
 import js from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
 import turboPlugin from "eslint-plugin-turbo";
 import onlyWarn from "eslint-plugin-only-warn";
+import tseslint from "typescript-eslint";
 
 const files = [
   "**/*.js",
@@ -14,32 +14,44 @@ const files = [
   "**/*.mts",
   "**/*.cts",
 ];
-const decoratorsPlugin = [
-  "@babel/plugin-syntax-decorators",
-  { version: "legacy" },
-];
 
 /** @type {import("eslint").Linter.Config[]} */
-export const config = [
+export const baseWithoutTypescript = [
   { ...js.configs.recommended, files },
   { ...eslintConfigPrettier, files },
   {
     files,
-    languageOptions: {
-      parser: babelParser,
-      parserOptions: {
-        requireConfigFile: false,
-        babelOptions: {
-          presets: ["@babel/preset-typescript"],
-          plugins: [decoratorsPlugin, "@babel/plugin-syntax-jsx"],
-        },
-      },
-    },
     plugins: {
       turbo: turboPlugin,
     },
     rules: {
       "turbo/no-undeclared-env-vars": "warn",
+    },
+  },
+  {
+    files,
+    plugins: {
+      onlyWarn,
+    },
+  },
+  {
+    ignores: ["dist/**"],
+  },
+];
+
+/** @type {import("eslint").Linter.Config[]} */
+export const config = [
+  { ...js.configs.recommended, files },
+  ...tseslint.configs.recommended.map((c) => ({ ...c, files })),
+  { ...eslintConfigPrettier, files },
+  {
+    files,
+    plugins: {
+      turbo: turboPlugin,
+    },
+    rules: {
+      "turbo/no-undeclared-env-vars": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
     },
   },
   {
