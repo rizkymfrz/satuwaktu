@@ -4,21 +4,34 @@ import eslintConfigPrettier from "eslint-config-prettier";
 import turboPlugin from "eslint-plugin-turbo";
 import onlyWarn from "eslint-plugin-only-warn";
 
-/**
- * A shared ESLint configuration for the repository.
- *
- * @type {import("eslint").Linter.Config[]}
- * */
+const files = [
+  "**/*.js",
+  "**/*.mjs",
+  "**/*.cjs",
+  "**/*.jsx",
+  "**/*.ts",
+  "**/*.tsx",
+  "**/*.mts",
+  "**/*.cts",
+];
+const decoratorsPlugin = [
+  "@babel/plugin-syntax-decorators",
+  { version: "legacy" },
+];
+
+/** @type {import("eslint").Linter.Config[]} */
 export const config = [
-  js.configs.recommended,
-  eslintConfigPrettier,
+  { ...js.configs.recommended, files },
+  { ...eslintConfigPrettier, files },
   {
+    files,
     languageOptions: {
       parser: babelParser,
       parserOptions: {
         requireConfigFile: false,
         babelOptions: {
           presets: ["@babel/preset-typescript"],
+          plugins: [decoratorsPlugin, "@babel/plugin-syntax-jsx"],
         },
       },
     },
@@ -30,6 +43,7 @@ export const config = [
     },
   },
   {
+    files,
     plugins: {
       onlyWarn,
     },
