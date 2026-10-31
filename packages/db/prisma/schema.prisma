@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum TextSize {
+  SMALL
+  NORMAL
+  LARGE
+}
+
+model ArchiveMeta {
+  id         String   @id @default("archive")
+  startedAt  DateTime
+  visitCount Int      @default(0)
+  updatedAt  DateTime @updatedAt
+}
+
+model Account {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  title        String
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  settings    AccountSettings?
+  fragments   Fragment[]
+  replies     Reply[]
+  pushDevices PushDevice[]
+}
+
+model PushDevice {
+  id        String   @id @default(cuid())
+  accountId String
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+}
+
+model AccountSettings {
+  accountId         String     @id
+  notifComment      Boolean    @default(true)
+  notifLike         Boolean    @default(false)
+  notifOnThisDay    Boolean    @default(true)
+  dataSaver         Boolean    @default(false)
+  autoSavePhotos    Boolean    @default(true)
+  textSize          TextSize   @default(NORMAL)
+  defaultVisibility Visibility @default(PUBLIC)
+  updatedAt         DateTime   @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+model Chapter {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  fragments Fragment[]
+
+  @@index([position])
+}
+
+model Fragment {
+  id             String     @id @default(cuid())
+  caption        String     @default("") @db.VarChar(280)
+  takenAt        DateTime
+  visibility     Visibility @default(PUBLIC)
+  pinned         Boolean    @default(false)
+  photoUrl       String?
+  photoWidth     Int?
+  photoHeight    Int?
+  latitude       Float?
+  longitude      Float?
+  placeName      String?
+  songTitle      String?    @db.VarChar(200)
+  songArtist     String?    @db.VarChar(200)
+  songUri        String?    @db.VarChar(500)
+  songArtworkUrl String?    @db.VarChar(500)
+  songStartSec   Float?
+  songEndSec     Float?
+  chapterId      String?
+  uploaderId     String
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  chapter  Chapter?  @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  uploader Account   @relation(fields: [uploaderId], references: [id], onDelete: Restrict)
+  likes    Like[]
+  comments Comment[]
+
+  @@index([takenAt(sort: Desc)])
+  @@index([visibility, takenAt(sort: Desc)])
+  @@index([chapterId, takenAt(sort: Desc)])
+  @@index([uploaderId])
+  @@index([pinned])
+}
+
+model Like {
+  id         String   @id @default(cuid())
+  fragmentId String
+  voterKey   String
+  createdAt  DateTime @default(now())
+
+  fragment Fragment @relation(fields: [fragmentId], references: [id], onDelete: Cascade)
+
+  @@unique([fragmentId, voterKey])
+  @@index([voterKey])
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  fragmentId String
+  text       String   @db.VarChar(200)
+  deviceKey  String?
+  createdAt  DateTime @default(now())
+
+  fragment Fragment @relation(fields: [fragmentId], references: [id], onDelete: Cascade)
+  replies  Reply[]
+
+  @@index([fragmentId, createdAt(sort: Desc)])
+}
+
+model Reply {
+  id        String   @id @default(cuid())
+  commentId String
+  authorId  String
+  text      String   @db.VarChar(200)
+  createdAt DateTime @default(now())
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  author  Account @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([commentId, createdAt])
+  @@index([authorId])
+}

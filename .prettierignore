@@ -7,3 +7,4 @@ build
 coverage
 pnpm-lock.yaml
 *.svg
+packages/db/src/generated
