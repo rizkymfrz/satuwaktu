@@ -24,10 +24,6 @@ function TimelineScreen() {
     () => groupByMonth(fragments, query.hasNextPage),
     [fragments, query.hasNextPage],
   );
-  const headerIndices = useMemo(
-    () => rows.flatMap((row, index) => (row.type === "header" ? [index] : [])),
-    [rows],
-  );
   const refresh = async () => {
     setRefreshing(true);
     try {
@@ -56,7 +52,6 @@ function TimelineScreen() {
           windowSize={7}
           maxToRenderPerBatch={6}
           data={rows}
-          stickyHeaderIndices={headerIndices}
           keyExtractor={(row) => row.key}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={refresh} />

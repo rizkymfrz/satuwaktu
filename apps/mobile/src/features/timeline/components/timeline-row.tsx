@@ -56,7 +56,7 @@ function TimelineRow({
   const router = useRouter();
   if (row.type === "header") {
     return (
-      <View className="flex-row bg-background">
+      <View className="flex-row">
         <Rail first={first} last={last} header />
         <View className="flex-1 flex-row items-baseline gap-2 pb-4 pt-4">
           <TypographyH4 className="font-head">{row.label}</TypographyH4>
