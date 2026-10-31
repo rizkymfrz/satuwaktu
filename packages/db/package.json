@@ -21,8 +21,7 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "lint": "eslint .",
-    "db:seed": "prisma db seed",
-    "db:seed:accounts": "prisma db seed -- --accounts-only"
+    "db:seed": "prisma db seed"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",
