@@ -8,7 +8,6 @@ import {
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, stat, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import sharp from 'sharp';
 import type { UploadedPhoto } from '@repo/dto';
 import { API_PREFIX, MEDIA_ROUTE } from '../config/api.config.js';
 import { resolveUploadDir } from '../config/env.config.js';
@@ -107,6 +106,7 @@ export class MediaService {
 
   private async compress(buffer: Buffer): Promise<StoredImage | null> {
     try {
+      const { default: sharp } = await import('sharp');
       const { data, info } = await sharp(buffer)
         .rotate()
         .resize({
