@@ -8,6 +8,7 @@ import {
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, stat, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import sharp from 'sharp';
 import type { UploadedPhoto } from '@repo/dto';
 import { API_PREFIX, MEDIA_ROUTE } from '../config/api.config.js';
 import { resolveUploadDir } from '../config/env.config.js';
@@ -25,11 +26,18 @@ const MEDIA_NAME_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp|heic)$/;
 
 const FIRST_ROTATED_ORIENTATION = 5;
+const MAX_PHOTO_EDGE_PX = 2048;
+const PHOTO_QUALITY = 80;
+const COMPRESSED_EXTENSION = 'webp';
 
 interface MeasuredImage {
   extension: string;
   width: number;
   height: number;
+}
+
+interface StoredImage extends MeasuredImage {
+  data: Buffer;
 }
 
 @Injectable()
@@ -38,10 +46,13 @@ export class MediaService {
   readonly uploadDir = resolveUploadDir();
 
   async save(buffer: Buffer): Promise<UploadedPhoto> {
-    const { extension, width, height } = this.measure(buffer);
+    const original = this.measure(buffer);
+    const { data, extension, width, height } = (await this.compress(
+      buffer,
+    )) ?? { ...original, data: buffer };
     const name = `${randomUUID()}.${extension}`;
     await mkdir(this.uploadDir, { recursive: true });
-    await writeFile(join(this.uploadDir, name), buffer, { flag: 'wx' });
+    await writeFile(join(this.uploadDir, name), data, { flag: 'wx' });
     return { url: `${MEDIA_URL_PREFIX}${name}`, width, height };
   }
 
@@ -92,6 +103,33 @@ export class MediaService {
     }
     const name = url.slice(MEDIA_URL_PREFIX.length);
     return MEDIA_NAME_PATTERN.test(name) ? name : null;
+  }
+
+  private async compress(buffer: Buffer): Promise<StoredImage | null> {
+    try {
+      const { data, info } = await sharp(buffer)
+        .rotate()
+        .resize({
+          width: MAX_PHOTO_EDGE_PX,
+          height: MAX_PHOTO_EDGE_PX,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .webp({ quality: PHOTO_QUALITY })
+        .toBuffer({ resolveWithObject: true });
+      if (data.length >= buffer.length) {
+        return null;
+      }
+      return {
+        data,
+        extension: COMPRESSED_EXTENSION,
+        width: info.width,
+        height: info.height,
+      };
+    } catch (error) {
+      this.logger.warn(`Could not compress photo: ${String(error)}`);
+      return null;
+    }
   }
 
   private measure(buffer: Buffer): MeasuredImage {
