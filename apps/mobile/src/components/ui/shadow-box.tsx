@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
 import { Platform, View, type ViewProps } from "react-native";
+import { cn } from "@/lib/utils";
 
 const SHADOW_OFFSET = {
   xs: 1,
@@ -10,8 +10,6 @@ const SHADOW_OFFSET = {
   xl: 10,
   "2xl": 16,
 } as const;
-
-type ShadowSize = keyof typeof SHADOW_OFFSET;
 
 const WEB_SHADOW_CLASS: Record<ShadowSize, string> = {
   xs: "shadow-xs",
@@ -33,17 +31,21 @@ const WEB_PRESSED_TRANSLATE_CLASS: Record<ShadowSize, string> = {
   "2xl": "translate-x-4 translate-y-4",
 };
 
+type ShadowSize = keyof typeof SHADOW_OFFSET;
+
 type ShadowBoxProps = Omit<ViewProps, "className"> & {
   size?: ShadowSize;
   pressed?: boolean;
+  circle?: boolean;
   className?: string;
   contentClassName?: string;
   shadowClassName?: string;
 };
 
 function ShadowBox({
-  size = "default",
+  size = "md",
   pressed = false,
+  circle = false,
   className,
   contentClassName,
   shadowClassName,
@@ -69,22 +71,62 @@ function ShadowBox({
       </View>
     );
   }
-
   const offset = SHADOW_OFFSET[size];
-
   return (
     <View className={cn("relative", className)}>
-      <View
-        pointerEvents="none"
-        className={cn("absolute bg-border", shadowClassName)}
-        style={{
-          top: offset,
-          left: offset,
-          width: "100%",
-          height: "100%",
-          elevation: 0,
-        }}
-      />
+      {circle ? (
+        <View
+          pointerEvents="none"
+          className={cn("absolute rounded-full bg-border", shadowClassName)}
+          style={{
+            top: offset,
+            left: offset,
+            width: "100%",
+            height: "100%",
+            opacity: pressed ? 0 : 1,
+            elevation: 0,
+          }}
+        />
+      ) : (
+        <>
+          <View
+            pointerEvents="none"
+            className={cn("absolute bg-border rounded-r-md", shadowClassName)}
+            style={{
+              top: offset,
+              left: "100%",
+              width: offset,
+              height: "100%",
+              opacity: pressed ? 0 : 1,
+              elevation: 0,
+            }}
+          />
+          <View
+            pointerEvents="none"
+            className={cn("absolute bg-border rounded-b-md", shadowClassName)}
+            style={{
+              top: "100%",
+              left: offset,
+              width: "100%",
+              height: offset,
+              opacity: pressed ? 0 : 1,
+              elevation: 0,
+            }}
+          />
+          <View
+            pointerEvents="none"
+            className={cn("absolute rounded-full bg-border", shadowClassName)}
+            style={{
+              right: -offset / 2,
+              bottom: -offset / 2,
+              width: offset,
+              height: offset,
+              opacity: pressed ? 0 : 1,
+              elevation: 0,
+            }}
+          />
+        </>
+      )}
       <View
         className={cn(contentClassName)}
         style={[

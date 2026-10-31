@@ -1,6 +1,7 @@
-import { cn } from "@/lib/utils";
-import * as LabelPrimitive from "@rn-primitives/label";
+import type { ComponentProps } from "react";
 import { Platform } from "react-native";
+import * as LabelPrimitive from "@rn-primitives/label";
+import { cn } from "@/lib/utils";
 
 function Label({
   className,
@@ -10,7 +11,7 @@ function Label({
   onPressOut,
   disabled,
   ...props
-}: React.ComponentProps<typeof LabelPrimitive.Text>) {
+}: ComponentProps<typeof LabelPrimitive.Text>) {
   return (
     <LabelPrimitive.Root
       className={cn(
@@ -28,7 +29,7 @@ function Label({
     >
       <LabelPrimitive.Text
         className={cn(
-          "text-foreground text-sm font-medium",
+          "font-head text-foreground text-sm font-medium",
           Platform.select({ web: "leading-none" }),
           className,
         )}

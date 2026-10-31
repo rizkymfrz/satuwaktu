@@ -1,33 +1,43 @@
-import { cn } from "@/lib/utils";
-import * as SwitchPrimitives from "@rn-primitives/switch";
+import type { ComponentProps } from "react";
 import { Platform } from "react-native";
+import * as SwitchPrimitives from "@rn-primitives/switch";
+import { cn } from "@/lib/utils";
 
 function Switch({
   className,
+  size = "default",
   ...props
-}: React.ComponentProps<typeof SwitchPrimitives.Root>) {
+}: ComponentProps<typeof SwitchPrimitives.Root> & {
+  size?: "default" | "sm";
+}) {
   return (
     <SwitchPrimitives.Root
       className={cn(
-        "flex h-[1.15rem] w-8 shrink-0 flex-row items-center rounded-full border border-transparent shadow-sm shadow-black/5",
+        "flex shrink-0 flex-row items-center border-2 border-foreground",
+        size === "sm" ? "h-5 w-9" : "h-6 w-11",
         Platform.select({
-          web: "focus-visible:border-ring focus-visible:ring-ring/50 peer inline-flex outline-none transition-all focus-visible:ring-[3px] disabled:cursor-not-allowed",
+          web: "peer inline-flex cursor-pointer outline-none transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed",
         }),
-        props.checked ? "bg-primary" : "bg-input dark:bg-input/80",
+        props.checked ? "bg-primary" : "bg-transparent",
         props.disabled && "opacity-50",
         className,
       )}
+      hitSlop={8}
       {...props}
     >
       <SwitchPrimitives.Thumb
         className={cn(
-          "bg-background size-4 rounded-full transition-transform",
+          "mx-0.5 border-2 border-foreground transition-transform",
+          size === "sm" ? "size-3" : "size-4",
           Platform.select({
-            web: "pointer-events-none block ring-0",
+            web: "pointer-events-none block",
           }),
           props.checked
-            ? "dark:bg-primary-foreground translate-x-3.5"
-            : "dark:bg-foreground translate-x-0",
+            ? cn(
+                "bg-background",
+                size === "sm" ? "translate-x-4" : "translate-x-5",
+              )
+            : "translate-x-0 bg-primary",
         )}
       />
     </SwitchPrimitives.Root>

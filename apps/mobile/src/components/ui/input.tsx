@@ -1,33 +1,52 @@
+import type { ComponentProps, RefAttributes } from "react";
+import { Platform, TextInput, type TextInputInstance } from "react-native";
+import { ShadowBox } from "@/components/ui/shadow-box";
+import { useRevealOnFocus } from "@/lib/keyboard-reveal";
 import { cn } from "@/lib/utils";
-import { Platform, TextInput } from "react-native";
 
 function Input({
   className,
+  inputClassName,
+  invalid = false,
   ...props
-}: React.ComponentProps<typeof TextInput> & React.RefAttributes<TextInput>) {
+}: ComponentProps<typeof TextInput> &
+  RefAttributes<TextInputInstance> & {
+    inputClassName?: string;
+    invalid?: boolean;
+  }) {
+  const disabled = props.editable === false;
+  const reveal = useRevealOnFocus();
   return (
-    <TextInput
-      className={cn(
-        "dark:bg-input/30 border-input bg-background text-foreground flex h-10 w-full min-w-0 flex-row items-center rounded-md border px-3 py-1 text-base leading-5 shadow-sm shadow-black/5 sm:h-9",
-        props.editable === false &&
-          cn(
-            "opacity-50",
-            Platform.select({
-              web: "disabled:pointer-events-none disabled:cursor-not-allowed",
-            }),
-          ),
+    <ShadowBox
+      size="md"
+      contentClassName={cn(
+        "h-10 w-full min-w-0 flex-row items-center rounded-md border-2 border-border bg-input px-3",
         Platform.select({
-          web: cn(
-            "placeholder:text-muted-foreground selection:bg-primary outline-none transition-[color,box-shadow] md:text-sm",
-            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-            "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-          ),
-          native: "placeholder:text-muted-foreground/50",
+          web: "focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary",
         }),
+        invalid && "border-destructive",
+        disabled && "opacity-50",
         className,
       )}
-      {...props}
-    />
+    >
+      <TextInput
+        className={cn(
+          "h-full flex-1 py-0 font-sans text-base leading-5 text-foreground placeholder:text-muted-foreground",
+          Platform.select({
+            web: cn(
+              "outline-none",
+              disabled && "pointer-events-none cursor-not-allowed",
+            ),
+          }),
+          inputClassName,
+        )}
+        {...props}
+        onFocus={(event) => {
+          reveal?.();
+          props.onFocus?.(event);
+        }}
+      />
+    </ShadowBox>
   );
 }
 

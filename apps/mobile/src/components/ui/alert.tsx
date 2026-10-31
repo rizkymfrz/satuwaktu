@@ -1,63 +1,126 @@
+import { cva, type VariantProps } from "class-variance-authority";
+import type { LucideIcon } from "lucide-react-native";
+import {
+  createContext,
+  useContext,
+  type ComponentProps,
+  type RefAttributes,
+} from "react";
+import { View } from "react-native";
 import { Icon } from "@/components/ui/icon";
+import { ShadowBox } from "@/components/ui/shadow-box";
 import { Text, TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
-import type { LucideIcon } from "lucide-react-native";
-import * as React from "react";
-import { View } from "react-native";
+
+type AlertVariantProps = VariantProps<typeof alertVariants>;
+
+type AlertProps = ComponentProps<typeof View> &
+  RefAttributes<View> &
+  AlertVariantProps & {
+    icon?: LucideIcon;
+    iconClassName?: string;
+  };
+
+const alertVariants = cva("", {
+  variants: {
+    variant: {
+      default: "border-border bg-background text-foreground",
+      destructive: "border-border bg-destructive text-destructive-foreground",
+      solid: "border-border bg-foreground text-background",
+    },
+    status: {
+      error: "border-border bg-destructive text-destructive-foreground",
+      success: "border-border bg-success text-success-foreground",
+      warning: "border-border bg-warning text-warning-foreground",
+      info: "border-border bg-info text-info-foreground",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+});
+
+const alertTextVariants = cva("", {
+  variants: {
+    variant: {
+      default: "text-foreground",
+      destructive: "text-destructive-foreground",
+      solid: "text-background",
+    },
+    status: {
+      error: "text-destructive-foreground",
+      success: "text-success-foreground",
+      warning: "text-warning-foreground",
+      info: "text-info-foreground",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+});
+
+const alertDescriptionVariants = cva("text-sm", {
+  variants: {
+    variant: {
+      default: "text-muted-foreground",
+      destructive: "text-destructive-foreground/80",
+      solid: "text-background/80",
+    },
+    status: {
+      error: "text-destructive-foreground/80",
+      success: "text-success-foreground/80",
+      warning: "text-warning-foreground/80",
+      info: "text-info-foreground/80",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+});
+
+const AlertContext = createContext<AlertVariantProps>({});
 
 function Alert({
   className,
   variant,
-  children,
+  status,
   icon,
   iconClassName,
+  children,
   ...props
-}: React.ComponentProps<typeof View> &
-  React.RefAttributes<View> & {
-    icon: LucideIcon;
-    variant?: "default" | "destructive";
-    iconClassName?: string;
-  }) {
+}: AlertProps) {
   return (
-    <TextClassContext.Provider
-      value={cn(
-        "text-sm text-foreground",
-        variant === "destructive" && "text-destructive",
-        className,
-      )}
-    >
-      <View
-        role="alert"
-        className={cn(
-          "bg-card border-border relative w-full rounded-lg border px-4 pb-2 pt-3.5",
-          className,
-        )}
-        {...props}
-      >
-        <View className="absolute left-3.5 top-3">
-          <Icon
-            as={icon}
-            className={cn(
-              "size-4",
-              variant === "destructive" && "text-destructive",
-              iconClassName,
-            )}
-          />
-        </View>
-        {children}
-      </View>
-    </TextClassContext.Provider>
+    <AlertContext.Provider value={{ variant, status }}>
+      <TextClassContext.Provider value={alertTextVariants({ variant, status })}>
+        <ShadowBox
+          size="md"
+          role="alert"
+          contentClassName={cn(
+            "w-full flex-row items-start gap-3 rounded-md border-2 px-4 py-3",
+            alertVariants({ variant, status }),
+            className,
+          )}
+          {...props}
+        >
+          {icon ? (
+            <Icon
+              as={icon}
+              size={20}
+              className={cn("mt-0.5 shrink-0", iconClassName)}
+            />
+          ) : null}
+          <View className="flex-1 gap-y-1">{children}</View>
+        </ShadowBox>
+      </TextClassContext.Provider>
+    </AlertContext.Provider>
   );
 }
 
-function AlertTitle({
-  className,
-  ...props
-}: React.ComponentProps<typeof Text>) {
+function AlertTitle({ className, ...props }: ComponentProps<typeof Text>) {
   return (
     <Text
       className={cn(
-        "mb-1 ml-0.5 min-h-4 pl-6 font-medium leading-none tracking-tight",
+        "min-h-5 font-head text-base leading-tight tracking-tight",
         className,
       )}
       {...props}
@@ -68,18 +131,20 @@ function AlertTitle({
 function AlertDescription({
   className,
   ...props
-}: React.ComponentProps<typeof Text>) {
-  const textClass = React.useContext(TextClassContext);
+}: ComponentProps<typeof Text>) {
+  const { variant, status } = useContext(AlertContext);
   return (
     <Text
-      className={cn(
-        "text-muted-foreground ml-0.5 pb-1.5 pl-6 text-sm leading-relaxed",
-        textClass?.includes("text-destructive") && "text-destructive/90",
-        className,
-      )}
+      className={cn(alertDescriptionVariants({ variant, status }), className)}
       {...props}
     />
   );
 }
 
-export { Alert, AlertDescription, AlertTitle };
+function AlertAction({ className, ...props }: ComponentProps<typeof View>) {
+  return (
+    <View className={cn("absolute right-2 top-2", className)} {...props} />
+  );
+}
+
+export { Alert, AlertAction, AlertDescription, AlertTitle, alertVariants };

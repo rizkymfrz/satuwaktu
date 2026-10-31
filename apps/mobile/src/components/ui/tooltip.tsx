@@ -1,8 +1,4 @@
-import { NativeOnlyAnimatedView } from "@/components/ui/native-only-animated-view";
-import { TextClassContext } from "@/components/ui/text";
-import { cn } from "@/lib/utils";
-import * as TooltipPrimitive from "@rn-primitives/tooltip";
-import * as React from "react";
+import { Fragment, type ComponentProps } from "react";
 import { Platform, StyleSheet } from "react-native";
 import {
   FadeInDown,
@@ -11,21 +7,30 @@ import {
   ReduceMotion,
 } from "react-native-reanimated";
 import { FullWindowOverlay as RNFullWindowOverlay } from "react-native-screens";
+import * as TooltipPrimitive from "@rn-primitives/tooltip";
+import { NativeOnlyAnimatedView } from "@/components/ui/native-only-animated-view";
+import { ShadowBox } from "@/components/ui/shadow-box";
+import { TextClassContext } from "@/components/ui/text";
+import { useScreenBottomInset } from "@/lib/screen-insets";
+import { cn } from "@/lib/utils";
 
 const Tooltip = TooltipPrimitive.Root;
 const TooltipTrigger = TooltipPrimitive.Trigger;
+
 const FullWindowOverlay =
-  Platform.OS === "ios" ? RNFullWindowOverlay : React.Fragment;
+  Platform.OS === "ios" ? RNFullWindowOverlay : Fragment;
 
 function TooltipContent({
   className,
   sideOffset = 4,
   portalHost,
   side = "top",
+  children,
   ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Content> & {
+}: ComponentProps<typeof TooltipPrimitive.Content> & {
   portalHost?: string;
 }) {
+  const screenBottomInset = useScreenBottomInset();
   return (
     <TooltipPrimitive.Portal hostName={portalHost}>
       <FullWindowOverlay>
@@ -48,25 +53,36 @@ function TooltipContent({
             exiting={FadeOut.reduceMotion(ReduceMotion.System)}
             as="Pressable"
           >
-            <TextClassContext.Provider value="text-xs text-primary-foreground">
+            <TextClassContext.Provider value="text-xs text-background">
               <TooltipPrimitive.Content
+                insets={{ bottom: screenBottomInset }}
                 sideOffset={sideOffset}
                 className={cn(
-                  "bg-primary z-50 rounded-md px-3 py-2 sm:py-1.5",
+                  "z-50",
                   Platform.select({
                     web: cn(
-                      "animate-in fade-in-0 zoom-in-95 origin-(--radix-tooltip-content-transform-origin) w-fit text-balance",
+                      "animate-in fade-in-0 zoom-in-95 origin-(--radix-tooltip-content-transform-origin) w-fit max-w-xs text-balance",
                       side === "bottom" && "slide-in-from-top-2",
                       side === "left" && "slide-in-from-right-2",
                       side === "right" && "slide-in-from-left-2",
                       side === "top" && "slide-in-from-bottom-2",
                     ),
                   }),
-                  className,
                 )}
                 side={side}
                 {...props}
-              />
+              >
+                <ShadowBox
+                  size="md"
+                  className="mb-1 mr-1"
+                  contentClassName={cn(
+                    "flex-row items-center gap-1.5 rounded-md border-2 border-border bg-foreground px-2 py-1",
+                    className,
+                  )}
+                >
+                  <>{children}</>
+                </ShadowBox>
+              </TooltipPrimitive.Content>
             </TextClassContext.Provider>
           </NativeOnlyAnimatedView>
         </TooltipPrimitive.Overlay>

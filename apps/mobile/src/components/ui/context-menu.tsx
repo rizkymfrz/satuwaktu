@@ -1,25 +1,27 @@
-import { Icon } from "@/components/ui/icon";
-import { NativeOnlyAnimatedView } from "@/components/ui/native-only-animated-view";
-import { TextClassContext } from "@/components/ui/text";
-import { cn } from "@/lib/utils";
-import * as ContextMenuPrimitive from "@rn-primitives/context-menu";
 import {
   Check,
   ChevronDown,
   ChevronRight,
   ChevronUp,
 } from "lucide-react-native";
-import * as React from "react";
+import { Fragment, type ComponentProps, type ReactNode } from "react";
 import {
   Platform,
-  type StyleProp,
   StyleSheet,
   Text,
   View,
+  type StyleProp,
   type ViewStyle,
 } from "react-native";
-import { FadeIn, ReduceMotion } from "react-native-reanimated";
+import { FadeIn, FadeOut, ReduceMotion } from "react-native-reanimated";
 import { FullWindowOverlay as RNFullWindowOverlay } from "react-native-screens";
+import * as ContextMenuPrimitive from "@rn-primitives/context-menu";
+import { Icon } from "@/components/ui/icon";
+import { NativeOnlyAnimatedView } from "@/components/ui/native-only-animated-view";
+import { ShadowBox } from "@/components/ui/shadow-box";
+import { TextClassContext } from "@/components/ui/text";
+import { useScreenBottomInset } from "@/lib/screen-insets";
+import { cn } from "@/lib/utils";
 
 const ContextMenu = ContextMenuPrimitive.Root;
 const ContextMenuTrigger = ContextMenuPrimitive.Trigger;
@@ -33,8 +35,8 @@ function ContextMenuSubTrigger({
   children,
   iconClassName,
   ...props
-}: React.ComponentProps<typeof ContextMenuPrimitive.SubTrigger> & {
-  children?: React.ReactNode;
+}: ComponentProps<typeof ContextMenuPrimitive.SubTrigger> & {
+  children?: ReactNode;
   iconClassName?: string;
   inset?: boolean;
 }) {
@@ -75,38 +77,53 @@ function ContextMenuSubTrigger({
 
 function ContextMenuSubContent({
   className,
+  children,
   ...props
-}: React.ComponentProps<typeof ContextMenuPrimitive.SubContent>) {
+}: ComponentProps<typeof ContextMenuPrimitive.SubContent>) {
   return (
-    <NativeOnlyAnimatedView entering={FadeIn.reduceMotion(ReduceMotion.System)}>
+    <NativeOnlyAnimatedView
+      entering={FadeIn.duration(200).reduceMotion(ReduceMotion.System)}
+      exiting={FadeOut.duration(150).reduceMotion(ReduceMotion.System)}
+    >
       <ContextMenuPrimitive.SubContent
         className={cn(
-          "bg-popover border-border overflow-hidden rounded-md border p-1 shadow-lg shadow-black/5",
           Platform.select({
-            web: "animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 fade-in-0 data-[state=closed]:zoom-out-95 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-(--radix-context-menu-content-transform-origin) z-50 min-w-[8rem]",
+            web: "animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 fade-in-0 data-[state=closed]:zoom-out-95 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-(--radix-context-menu-content-transform-origin) z-50 min-w-32",
           }),
-          className,
         )}
         {...props}
-      />
+      >
+        <ShadowBox
+          size="md"
+          className="mb-1 mr-1"
+          contentClassName={cn(
+            "overflow-hidden rounded-md border-2 border-border bg-popover p-1",
+            className,
+          )}
+        >
+          <>{children}</>
+        </ShadowBox>
+      </ContextMenuPrimitive.SubContent>
     </NativeOnlyAnimatedView>
   );
 }
 
 const FullWindowOverlay =
-  Platform.OS === "ios" ? RNFullWindowOverlay : React.Fragment;
+  Platform.OS === "ios" ? RNFullWindowOverlay : Fragment;
 
 function ContextMenuContent({
   className,
   overlayClassName,
   overlayStyle,
   portalHost,
+  children,
   ...props
-}: React.ComponentProps<typeof ContextMenuPrimitive.Content> & {
+}: ComponentProps<typeof ContextMenuPrimitive.Content> & {
   overlayStyle?: StyleProp<ViewStyle>;
   overlayClassName?: string;
   portalHost?: string;
 }) {
+  const screenBottomInset = useScreenBottomInset();
   return (
     <ContextMenuPrimitive.Portal hostName={portalHost}>
       <FullWindowOverlay>
@@ -124,13 +141,15 @@ function ContextMenuContent({
           asChild={Platform.OS !== "web"}
         >
           <NativeOnlyAnimatedView
-            entering={FadeIn.reduceMotion(ReduceMotion.System)}
+            entering={FadeIn.duration(200).reduceMotion(ReduceMotion.System)}
+            exiting={FadeOut.duration(150).reduceMotion(ReduceMotion.System)}
             as="Pressable"
           >
             <TextClassContext.Provider value="text-popover-foreground">
               <ContextMenuPrimitive.Content
+                insets={{ bottom: screenBottomInset }}
                 className={cn(
-                  "bg-popover border-border min-w-[8rem] overflow-hidden rounded-md border p-1 shadow-lg shadow-black/5",
+                  "min-w-36",
                   Platform.select({
                     web: cn(
                       "animate-in fade-in-0 zoom-in-95 max-h-(--radix-context-menu-content-available-height) origin-(--radix-context-menu-content-transform-origin) z-50 cursor-default",
@@ -138,10 +157,20 @@ function ContextMenuContent({
                       props.side === "top" && "slide-in-from-bottom-2",
                     ),
                   }),
-                  className,
                 )}
                 {...props}
-              />
+              >
+                <ShadowBox
+                  size="md"
+                  className="mb-1 mr-1"
+                  contentClassName={cn(
+                    "overflow-hidden rounded-md border-2 border-border bg-popover p-1",
+                    className,
+                  )}
+                >
+                  <>{children}</>
+                </ShadowBox>
+              </ContextMenuPrimitive.Content>
             </TextClassContext.Provider>
           </NativeOnlyAnimatedView>
         </ContextMenuPrimitive.Overlay>
@@ -155,7 +184,7 @@ function ContextMenuItem({
   inset,
   variant,
   ...props
-}: React.ComponentProps<typeof ContextMenuPrimitive.Item> & {
+}: ComponentProps<typeof ContextMenuPrimitive.Item> & {
   className?: string;
   inset?: boolean;
   variant?: "default" | "destructive";
@@ -194,14 +223,14 @@ function ContextMenuCheckboxItem({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof ContextMenuPrimitive.CheckboxItem> & {
-  children?: React.ReactNode;
+}: ComponentProps<typeof ContextMenuPrimitive.CheckboxItem> & {
+  children?: ReactNode;
 }) {
   return (
     <TextClassContext.Provider value="text-sm text-popover-foreground select-none group-active:text-accent-foreground">
       <ContextMenuPrimitive.CheckboxItem
         className={cn(
-          "active:bg-accent group relative flex flex-row items-center gap-2 rounded-sm py-2 pl-8 pr-2 sm:py-1.5",
+          "active:bg-accent group relative flex flex-row items-center gap-2 rounded-sm py-2 pl-2 pr-8 sm:py-1.5",
           Platform.select({
             web: "focus:bg-accent focus:text-accent-foreground cursor-default outline-none data-[disabled]:pointer-events-none",
           }),
@@ -210,7 +239,7 @@ function ContextMenuCheckboxItem({
         )}
         {...props}
       >
-        <View className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+        <View className="absolute right-2 flex size-4 items-center justify-center">
           <ContextMenuPrimitive.ItemIndicator>
             <Icon
               as={Check}
@@ -231,14 +260,14 @@ function ContextMenuRadioItem({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof ContextMenuPrimitive.RadioItem> & {
-  children?: React.ReactNode;
+}: ComponentProps<typeof ContextMenuPrimitive.RadioItem> & {
+  children?: ReactNode;
 }) {
   return (
     <TextClassContext.Provider value="text-sm text-popover-foreground select-none group-active:text-accent-foreground">
       <ContextMenuPrimitive.RadioItem
         className={cn(
-          "active:bg-accent group relative flex flex-row items-center gap-2 rounded-sm py-2 pl-8 pr-2 sm:py-1.5",
+          "active:bg-accent group relative flex flex-row items-center gap-2 rounded-sm py-2 pl-2 pr-8 sm:py-1.5",
           Platform.select({
             web: "focus:bg-accent focus:text-accent-foreground cursor-default outline-none data-[disabled]:pointer-events-none",
           }),
@@ -247,9 +276,15 @@ function ContextMenuRadioItem({
         )}
         {...props}
       >
-        <View className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+        <View className="absolute right-2 flex size-4 items-center justify-center">
           <ContextMenuPrimitive.ItemIndicator>
-            <View className="bg-foreground h-2 w-2 rounded-full" />
+            <Icon
+              as={Check}
+              className={cn(
+                "text-foreground size-4",
+                Platform.select({ web: "pointer-events-none" }),
+              )}
+            />
           </ContextMenuPrimitive.ItemIndicator>
         </View>
         <>{children}</>
@@ -262,14 +297,14 @@ function ContextMenuLabel({
   className,
   inset,
   ...props
-}: React.ComponentProps<typeof ContextMenuPrimitive.Label> & {
+}: ComponentProps<typeof ContextMenuPrimitive.Label> & {
   className?: string;
   inset?: boolean;
 }) {
   return (
     <ContextMenuPrimitive.Label
       className={cn(
-        "text-foreground px-2 py-2 text-sm font-medium sm:py-1.5",
+        "px-1.5 py-1 text-xs font-medium text-muted-foreground",
         inset && "pl-8",
         className,
       )}
@@ -281,10 +316,10 @@ function ContextMenuLabel({
 function ContextMenuSeparator({
   className,
   ...props
-}: React.ComponentProps<typeof ContextMenuPrimitive.Separator>) {
+}: ComponentProps<typeof ContextMenuPrimitive.Separator>) {
   return (
     <ContextMenuPrimitive.Separator
-      className={cn("bg-border -mx-1 my-1 h-px", className)}
+      className={cn("bg-border -mx-1 my-1 h-0.5", className)}
       {...props}
     />
   );
@@ -293,7 +328,7 @@ function ContextMenuSeparator({
 function ContextMenuShortcut({
   className,
   ...props
-}: React.ComponentProps<typeof Text>) {
+}: ComponentProps<typeof Text>) {
   return (
     <Text
       className={cn(

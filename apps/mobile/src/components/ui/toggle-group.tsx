@@ -1,49 +1,86 @@
+import type { VariantProps } from "class-variance-authority";
+import { createContext, useContext, type ComponentProps } from "react";
+import {
+  Platform,
+  StyleSheet,
+  View,
+  type PressableStateCallbackType,
+} from "react-native";
+import * as ToggleGroupPrimitive from "@rn-primitives/toggle-group";
 import { Icon } from "@/components/ui/icon";
+import { ShadowBox } from "@/components/ui/shadow-box";
 import { TextClassContext } from "@/components/ui/text";
 import { toggleVariants } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
-import * as ToggleGroupPrimitive from "@rn-primitives/toggle-group";
-import type { VariantProps } from "class-variance-authority";
-import * as React from "react";
-import { Platform } from "react-native";
 
-const ToggleGroupContext = React.createContext<VariantProps<
-  typeof toggleVariants
-> | null>(null);
+type ToggleGroupOrientation = "horizontal" | "vertical";
+
+type ToggleGroupContextValue = VariantProps<typeof toggleVariants> & {
+  spacing: number;
+  orientation: ToggleGroupOrientation;
+};
+
+const SPACING_UNIT = 4;
+
+const ToggleGroupContext = createContext<ToggleGroupContextValue>({
+  size: "default",
+  variant: "default",
+  spacing: 2,
+  orientation: "horizontal",
+});
 
 function ToggleGroup({
   className,
   variant,
   size,
+  spacing = 2,
+  orientation = "horizontal",
   children,
+  style,
   ...props
-}: React.ComponentProps<typeof ToggleGroupPrimitive.Root> &
-  VariantProps<typeof toggleVariants>) {
-  return (
+}: ComponentProps<typeof ToggleGroupPrimitive.Root> &
+  VariantProps<typeof toggleVariants> & {
+    spacing?: number;
+    orientation?: ToggleGroupOrientation;
+  }) {
+  const joined = spacing === 0;
+  const horizontal = orientation === "horizontal";
+  const root = (
     <ToggleGroupPrimitive.Root
       className={cn(
-        "flex flex-row items-center rounded-md shadow-none",
+        "items-center",
+        horizontal ? "flex-row" : "flex-col items-stretch",
+        joined ? (horizontal ? "-mr-0.5" : "-mb-0.5") : "mb-1 mr-1 self-start",
         Platform.select({ web: "w-fit" }),
-        variant === "outline" && "shadow-sm shadow-black/5",
         className,
       )}
+      style={StyleSheet.flatten([
+        joined ? null : { gap: spacing * SPACING_UNIT },
+        style,
+      ])}
       {...props}
     >
-      <ToggleGroupContext.Provider value={{ variant, size }}>
+      <ToggleGroupContext.Provider
+        value={{ variant, size, spacing, orientation }}
+      >
         {children}
       </ToggleGroupContext.Provider>
     </ToggleGroupPrimitive.Root>
   );
-}
-
-function useToggleGroupContext() {
-  const context = React.useContext(ToggleGroupContext);
-  if (context === null) {
-    throw new Error(
-      "ToggleGroup compound components cannot be rendered outside the ToggleGroup component",
-    );
+  if (!joined) {
+    return root;
   }
-  return context;
+  return (
+    <View style={{ flexDirection: "row", alignSelf: "flex-start" }}>
+      <ShadowBox
+        size="md"
+        className="mb-1 mr-1"
+        contentClassName="overflow-hidden rounded-md border-2 border-border bg-background"
+      >
+        {root}
+      </ShadowBox>
+    </View>
+  );
 }
 
 function ToggleGroupItem({
@@ -51,61 +88,67 @@ function ToggleGroupItem({
   children,
   variant,
   size,
-  isFirst,
-  isLast,
   ...props
-}: React.ComponentProps<typeof ToggleGroupPrimitive.Item> &
-  VariantProps<typeof toggleVariants> & {
-    isFirst?: boolean;
-    isLast?: boolean;
-  }) {
-  const context = useToggleGroupContext();
+}: ComponentProps<typeof ToggleGroupPrimitive.Item> &
+  VariantProps<typeof toggleVariants>) {
+  const context = useContext(ToggleGroupContext);
   const { value } = ToggleGroupPrimitive.useRootContext();
-
+  const selected = ToggleGroupPrimitive.utils.getIsSelected(value, props.value);
+  const joined = context.spacing === 0;
+  const horizontal = context.orientation === "horizontal";
+  const contentClassName = cn(
+    toggleVariants({
+      variant: context.variant || variant,
+      size: context.size || size,
+    }),
+    selected ? "bg-primary" : "bg-background",
+    joined &&
+      cn(
+        "rounded-none border-0",
+        horizontal ? "border-r-2" : "border-b-2",
+        !horizontal && "w-full",
+      ),
+    className,
+  );
   return (
     <TextClassContext.Provider
       value={cn(
-        "text-sm text-foreground font-medium",
-        ToggleGroupPrimitive.utils.getIsSelected(value, props.value)
-          ? "text-accent-foreground"
-          : Platform.select({ web: "group-hover:text-muted-foreground" }),
+        "font-head text-sm font-medium",
+        selected ? "text-primary-foreground" : "text-foreground",
       )}
     >
       <ToggleGroupPrimitive.Item
         className={cn(
-          toggleVariants({
-            variant: context.variant || variant,
-            size: context.size || size,
-          }),
+          "group shrink-0",
           props.disabled && "opacity-50",
-          ToggleGroupPrimitive.utils.getIsSelected(value, props.value) &&
-            "bg-accent",
-          "min-w-0 shrink-0 rounded-none shadow-none",
-          isFirst && "rounded-l-md",
-          isLast && "rounded-r-md",
-          (context.variant === "outline" || variant === "outline") &&
-            "border-l-0",
-          (context.variant === "outline" || variant === "outline") &&
-            isFirst &&
-            "border-l",
-          Platform.select({
-            web: "flex-1 focus:z-10 focus-visible:z-10",
-          }),
-          className,
+          Platform.select({ web: "focus:z-10 focus-visible:z-10" }),
         )}
         {...props}
       >
-        {children}
+        {(state: PressableStateCallbackType) => {
+          const content =
+            typeof children === "function" ? children(state) : children;
+          return joined ? (
+            <View className={contentClassName}>
+              <>{content}</>
+            </View>
+          ) : (
+            <ShadowBox
+              size="md"
+              pressed={state.pressed}
+              contentClassName={contentClassName}
+            >
+              <>{content}</>
+            </ShadowBox>
+          );
+        }}
       </ToggleGroupPrimitive.Item>
     </TextClassContext.Provider>
   );
 }
 
-function ToggleGroupIcon({
-  className,
-  ...props
-}: React.ComponentProps<typeof Icon>) {
-  const textClass = React.useContext(TextClassContext);
+function ToggleGroupIcon({ className, ...props }: ComponentProps<typeof Icon>) {
+  const textClass = useContext(TextClassContext);
   return (
     <Icon className={cn("size-4 shrink-0", textClass, className)} {...props} />
   );

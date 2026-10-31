@@ -1,12 +1,9 @@
-import { Icon } from "@/components/ui/icon";
-import { ShadowBox } from "@/components/ui/shadow-box";
-import { TextClassContext } from "@/components/ui/text";
-import { cn } from "@/lib/utils";
-import * as AccordionPrimitive from "@rn-primitives/accordion";
 import { ChevronDown } from "lucide-react-native";
+import type { ComponentProps, ReactNode } from "react";
 import { Platform, Pressable, View } from "react-native";
 import Animated, {
-  FadeOutUp,
+  FadeIn,
+  FadeOut,
   LayoutAnimationConfig,
   LinearTransition,
   ReduceMotion,
@@ -14,13 +11,18 @@ import Animated, {
   useDerivedValue,
   withTiming,
 } from "react-native-reanimated";
+import * as AccordionPrimitive from "@rn-primitives/accordion";
+import { Icon } from "@/components/ui/icon";
+import { ShadowBox } from "@/components/ui/shadow-box";
+import { TextClassContext } from "@/components/ui/text";
+import { cn } from "@/lib/utils";
 
 function Accordion({
   children,
   className,
   ref,
   ...props
-}: Omit<React.ComponentProps<typeof AccordionPrimitive.Root>, "asChild">) {
+}: Omit<ComponentProps<typeof AccordionPrimitive.Root>, "asChild">) {
   return (
     <LayoutAnimationConfig skipEntering>
       <AccordionPrimitive.Root
@@ -41,7 +43,7 @@ function AccordionItem({
   className,
   value,
   ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Item>) {
+}: ComponentProps<typeof AccordionPrimitive.Item>) {
   return (
     <AccordionPrimitive.Item
       value={value}
@@ -62,15 +64,13 @@ function AccordionItemBox({
   children,
 }: {
   className?: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
 }) {
-  const { isExpanded } = AccordionPrimitive.useItemContext();
-
   return (
     <ShadowBox
-      size={isExpanded ? "sm" : "md"}
+      size="md"
       contentClassName={cn(
-        "rounded-none border-2 border-border bg-background overflow-hidden",
+        "rounded-md border-2 border-border bg-background overflow-hidden",
         className,
       )}
     >
@@ -85,11 +85,10 @@ function AccordionTrigger({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Trigger> & {
-  children?: React.ReactNode;
+}: ComponentProps<typeof AccordionPrimitive.Trigger> & {
+  children?: ReactNode;
 }) {
   const { isExpanded } = AccordionPrimitive.useItemContext();
-
   const progress = useDerivedValue(
     () =>
       isExpanded
@@ -103,7 +102,6 @@ function AccordionTrigger({
     }),
     [progress],
   );
-
   return (
     <TextClassContext.Provider value="text-left text-base font-head">
       <AccordionPrimitive.Header>
@@ -137,7 +135,7 @@ function AccordionContent({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Content>) {
+}: ComponentProps<typeof AccordionPrimitive.Content>) {
   const { isExpanded } = AccordionPrimitive.useItemContext();
   return (
     <TextClassContext.Provider value="text-sm text-muted-foreground font-sans">
@@ -151,8 +149,11 @@ function AccordionContent({
         {...props}
       >
         <Animated.View
+          entering={Platform.select({
+            native: FadeIn.duration(200).reduceMotion(ReduceMotion.System),
+          })}
           exiting={Platform.select({
-            native: FadeOutUp.duration(200).reduceMotion(ReduceMotion.System),
+            native: FadeOut.duration(150).reduceMotion(ReduceMotion.System),
           })}
           className={cn("px-4 pt-2 pb-4", className)}
         >

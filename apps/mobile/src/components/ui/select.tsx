@@ -1,18 +1,20 @@
-import { Icon } from "@/components/ui/icon";
-import { NativeOnlyAnimatedView } from "@/components/ui/native-only-animated-view";
-import { TextClassContext } from "@/components/ui/text";
-import { cn } from "@/lib/utils";
-import * as SelectPrimitive from "@rn-primitives/select";
 import {
   Check,
   ChevronDown,
   ChevronDownIcon,
   ChevronUpIcon,
 } from "lucide-react-native";
-import * as React from "react";
+import { Fragment, type ComponentProps, type ReactNode } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { FadeIn, FadeOut, ReduceMotion } from "react-native-reanimated";
 import { FullWindowOverlay as RNFullWindowOverlay } from "react-native-screens";
+import * as SelectPrimitive from "@rn-primitives/select";
+import { Icon } from "@/components/ui/icon";
+import { NativeOnlyAnimatedView } from "@/components/ui/native-only-animated-view";
+import { ShadowBox } from "@/components/ui/shadow-box";
+import { TextClassContext } from "@/components/ui/text";
+import { useScreenBottomInset } from "@/lib/screen-insets";
+import { cn } from "@/lib/utils";
 
 type Option = SelectPrimitive.Option;
 
@@ -23,7 +25,7 @@ function SelectValue({
   ref,
   className,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Value> & {
+}: ComponentProps<typeof SelectPrimitive.Value> & {
   className?: string;
 }) {
   const { value } = SelectPrimitive.useRootContext();
@@ -31,7 +33,7 @@ function SelectValue({
     <SelectPrimitive.Value
       ref={ref}
       className={cn(
-        "text-foreground line-clamp-1 flex flex-row items-center gap-2 text-sm",
+        "text-foreground line-clamp-1 flex flex-row items-center gap-2 text-base leading-5",
         !value && "text-muted-foreground",
         className,
       )}
@@ -46,36 +48,42 @@ function SelectTrigger({
   children,
   size = "default",
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
-  children?: React.ReactNode;
+}: ComponentProps<typeof SelectPrimitive.Trigger> & {
+  children?: ReactNode;
   size?: "default" | "sm";
 }) {
   return (
     <SelectPrimitive.Trigger
       ref={ref}
       className={cn(
-        "border-input dark:bg-input/30 dark:active:bg-input/50 bg-background flex h-10 flex-row items-center justify-between gap-2 rounded-md border px-3 py-2 shadow-sm shadow-black/5 sm:h-9",
         Platform.select({
-          web: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:hover:bg-input/50 w-fit whitespace-nowrap text-sm outline-none transition-[color,box-shadow] focus-visible:ring-[3px] disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:shrink-0",
+          web: "w-fit cursor-pointer whitespace-nowrap text-sm outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:shrink-0",
         }),
         props.disabled && "opacity-50",
-        size === "sm" && "h-8 py-2 sm:py-1.5",
         className,
       )}
       {...props}
     >
-      <>{children}</>
-      <Icon
-        as={ChevronDown}
-        aria-hidden={true}
-        className="text-muted-foreground size-4"
-      />
+      <ShadowBox
+        size="md"
+        contentClassName={cn(
+          "w-full flex-row items-center justify-between gap-1.5 rounded-md border-2 border-border bg-input pl-2.5 pr-2",
+          size === "sm" ? "h-9" : "h-10",
+        )}
+      >
+        <>{children}</>
+        <Icon
+          as={ChevronDown}
+          aria-hidden={true}
+          className="text-muted-foreground size-4"
+        />
+      </ShadowBox>
     </SelectPrimitive.Trigger>
   );
 }
 
 const FullWindowOverlay =
-  Platform.OS === "ios" ? RNFullWindowOverlay : React.Fragment;
+  Platform.OS === "ios" ? RNFullWindowOverlay : Fragment;
 
 function SelectContent({
   className,
@@ -83,10 +91,11 @@ function SelectContent({
   position = "popper",
   portalHost,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content> & {
+}: ComponentProps<typeof SelectPrimitive.Content> & {
   className?: string;
   portalHost?: string;
 }) {
+  const screenBottomInset = useScreenBottomInset();
   return (
     <SelectPrimitive.Portal hostName={portalHost}>
       <FullWindowOverlay>
@@ -96,21 +105,21 @@ function SelectContent({
         >
           <NativeOnlyAnimatedView
             className="z-50"
-            entering={FadeIn.reduceMotion(ReduceMotion.System)}
-            exiting={FadeOut.reduceMotion(ReduceMotion.System)}
+            entering={FadeIn.duration(200).reduceMotion(ReduceMotion.System)}
+            exiting={FadeOut.duration(150).reduceMotion(ReduceMotion.System)}
             as="Pressable"
           >
             <TextClassContext.Provider value="text-popover-foreground">
               <SelectPrimitive.Content
+                insets={{ bottom: screenBottomInset }}
                 className={cn(
-                  "bg-popover border-border relative z-50 min-w-[8rem] rounded-md border shadow-md shadow-black/5",
+                  "relative z-50 min-w-[8rem]",
                   Platform.select({
                     web: cn(
-                      "animate-in fade-in-0 zoom-in-95 origin-(--radix-select-content-transform-origin) max-h-52 overflow-y-auto overflow-x-hidden",
+                      "animate-in fade-in-0 zoom-in-95 origin-(--radix-select-content-transform-origin)",
                       props.side === "bottom" && "slide-in-from-top-2",
                       props.side === "top" && "slide-in-from-bottom-2",
                     ),
-                    native: "p-1",
                   }),
                   position === "popper" &&
                     Platform.select({
@@ -124,22 +133,30 @@ function SelectContent({
                 position={position}
                 {...props}
               >
-                <SelectScrollUpButton />
-                <SelectPrimitive.Viewport
-                  className={cn(
-                    "p-1",
-                    position === "popper" &&
-                      cn(
-                        "w-full",
-                        Platform.select({
-                          web: "h-[var(--radix-select-trigger-height)] min-w-[var(--radix-select-trigger-width)]",
-                        }),
-                      ),
-                  )}
+                <ShadowBox
+                  size="md"
+                  contentClassName="overflow-hidden rounded-md border-2 border-border bg-popover"
                 >
-                  {children}
-                </SelectPrimitive.Viewport>
-                <SelectScrollDownButton />
+                  <SelectScrollUpButton />
+                  <SelectPrimitive.Viewport
+                    className={cn(
+                      "p-1",
+                      Platform.select({
+                        web: "max-h-52 overflow-y-auto overflow-x-hidden",
+                      }),
+                      position === "popper" &&
+                        cn(
+                          "w-full",
+                          Platform.select({
+                            web: "h-[var(--radix-select-trigger-height)] min-w-[var(--radix-select-trigger-width)]",
+                          }),
+                        ),
+                    )}
+                  >
+                    {children}
+                  </SelectPrimitive.Viewport>
+                  <SelectScrollDownButton />
+                </ShadowBox>
               </SelectPrimitive.Content>
             </TextClassContext.Provider>
           </NativeOnlyAnimatedView>
@@ -152,7 +169,7 @@ function SelectContent({
 function SelectLabel({
   className,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Label>) {
+}: ComponentProps<typeof SelectPrimitive.Label>) {
   return (
     <SelectPrimitive.Label
       className={cn(
@@ -168,7 +185,7 @@ function SelectItem({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Item>) {
+}: ComponentProps<typeof SelectPrimitive.Item>) {
   return (
     <SelectPrimitive.Item
       className={cn(
@@ -194,11 +211,11 @@ function SelectItem({
 function SelectSeparator({
   className,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Separator>) {
+}: ComponentProps<typeof SelectPrimitive.Separator>) {
   return (
     <SelectPrimitive.Separator
       className={cn(
-        "bg-border -mx-1 my-1 h-px",
+        "bg-border -mx-1 my-1 h-0.5",
         Platform.select({ web: "pointer-events-none" }),
         className,
       )}
@@ -210,7 +227,7 @@ function SelectSeparator({
 function SelectScrollUpButton({
   className,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
+}: ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
   if (Platform.OS !== "web") {
     return null;
   }
@@ -230,7 +247,7 @@ function SelectScrollUpButton({
 function SelectScrollDownButton({
   className,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
+}: ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
   if (Platform.OS !== "web") {
     return null;
   }

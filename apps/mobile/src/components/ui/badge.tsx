@@ -1,12 +1,13 @@
+import { cva, type VariantProps } from "class-variance-authority";
+import type { ComponentProps, RefAttributes } from "react";
+import { Platform, View } from "react-native";
+import { Slot } from "@rn-primitives/slot";
 import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
-import { Slot } from "@rn-primitives/slot";
-import { cva, type VariantProps } from "class-variance-authority";
-import { Platform, View } from "react-native";
 
 const badgeVariants = cva(
   cn(
-    "border-border group shrink-0 flex-row items-center justify-center gap-1 overflow-hidden rounded-full border px-2 py-0.5",
+    "border-border group shrink-0 flex-row items-center justify-center gap-1 h-6 overflow-hidden rounded-full border px-2",
     Platform.select({
       web: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-fit whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] [&>svg]:pointer-events-none [&>svg]:size-3",
     }),
@@ -37,12 +38,12 @@ const badgeVariants = cva(
   },
 );
 
-const badgeTextVariants = cva("text-xs font-medium", {
+const badgeTextVariants = cva("text-xs font-medium leading-none", {
   variants: {
     variant: {
       default: "text-primary-foreground",
       secondary: "text-secondary-foreground",
-      destructive: "text-white",
+      destructive: "text-destructive-foreground",
       outline: "text-foreground",
     },
   },
@@ -51,8 +52,8 @@ const badgeTextVariants = cva("text-xs font-medium", {
   },
 });
 
-type BadgeProps = React.ComponentProps<typeof View> &
-  React.RefAttributes<View> & {
+type BadgeProps = ComponentProps<typeof View> &
+  RefAttributes<View> & {
     asChild?: boolean;
   } & VariantProps<typeof badgeVariants>;
 

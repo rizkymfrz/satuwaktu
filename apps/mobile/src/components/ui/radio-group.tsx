@@ -1,33 +1,49 @@
-import { cn } from "@/lib/utils";
-import * as RadioGroupPrimitive from "@rn-primitives/radio-group";
+import type { ComponentProps } from "react";
 import { Platform } from "react-native";
+import * as RadioGroupPrimitive from "@rn-primitives/radio-group";
+import { ShadowBox } from "@/components/ui/shadow-box";
+import { cn } from "@/lib/utils";
+
+const DEFAULT_HIT_SLOP = 12;
 
 function RadioGroup({
   className,
   ...props
-}: React.ComponentProps<typeof RadioGroupPrimitive.Root>) {
+}: ComponentProps<typeof RadioGroupPrimitive.Root>) {
   return (
-    <RadioGroupPrimitive.Root className={cn("gap-3", className)} {...props} />
+    <RadioGroupPrimitive.Root
+      className={cn("w-full gap-2", className)}
+      {...props}
+    />
   );
 }
 
 function RadioGroupItem({
   className,
   ...props
-}: React.ComponentProps<typeof RadioGroupPrimitive.Item>) {
+}: ComponentProps<typeof RadioGroupPrimitive.Item>) {
   return (
     <RadioGroupPrimitive.Item
       className={cn(
-        "border-input dark:bg-input/30 aspect-square size-4 shrink-0 items-center justify-center rounded-full border shadow-sm shadow-black/5",
+        "shrink-0 self-start",
         Platform.select({
-          web: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive outline-none transition-all focus-visible:ring-[3px] disabled:cursor-not-allowed",
+          web: "peer cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed",
         }),
         props.disabled && "opacity-50",
-        className,
       )}
+      hitSlop={DEFAULT_HIT_SLOP}
       {...props}
     >
-      <RadioGroupPrimitive.Indicator className="bg-primary size-2 rounded-full" />
+      <ShadowBox
+        size="md"
+        circle
+        contentClassName={cn(
+          "size-5 items-center justify-center rounded-full border-2 border-border bg-input",
+          className,
+        )}
+      >
+        <RadioGroupPrimitive.Indicator className="size-2 rounded-full bg-primary" />
+      </ShadowBox>
     </RadioGroupPrimitive.Item>
   );
 }

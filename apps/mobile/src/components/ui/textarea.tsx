@@ -1,29 +1,57 @@
+import type { ComponentProps, RefAttributes } from "react";
+import { Platform, TextInput, type TextInputInstance } from "react-native";
+import { ShadowBox } from "@/components/ui/shadow-box";
+import { useRevealOnFocus } from "@/lib/keyboard-reveal";
 import { cn } from "@/lib/utils";
-import { Platform, TextInput } from "react-native";
 
 function Textarea({
   className,
+  inputClassName,
+  invalid = false,
   multiline = true,
-  numberOfLines = Platform.select({ web: 2, native: 8 }),
-  placeholderClassName,
+  numberOfLines = Platform.select({ web: 2, native: 4 }),
   ...props
-}: React.ComponentProps<typeof TextInput> & React.RefAttributes<TextInput>) {
+}: ComponentProps<typeof TextInput> &
+  RefAttributes<TextInputInstance> & {
+    inputClassName?: string;
+    invalid?: boolean;
+  }) {
+  const disabled = props.editable === false;
+  const reveal = useRevealOnFocus();
   return (
-    <TextInput
-      className={cn(
-        "text-foreground border-input dark:bg-input/30 flex min-h-16 w-full flex-row rounded-md border bg-transparent px-3 py-2 text-base shadow-sm shadow-black/5 md:text-sm",
+    <ShadowBox
+      size="md"
+      contentClassName={cn(
+        "min-h-16 w-full min-w-0 rounded-md border-2 border-border bg-input px-3 py-2",
+        invalid && "border-destructive",
+        disabled && "opacity-50",
         Platform.select({
-          web: "placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive field-sizing-content resize-y outline-none transition-[color,box-shadow] focus-visible:ring-[3px] disabled:cursor-not-allowed",
+          web: "focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary",
         }),
-        props.editable === false && "opacity-50",
         className,
       )}
-      placeholderClassName={cn("text-muted-foreground", placeholderClassName)}
-      multiline={multiline}
-      numberOfLines={numberOfLines}
-      textAlignVertical="top"
-      {...props}
-    />
+    >
+      <TextInput
+        className={cn(
+          "min-h-12 w-full flex-1 p-0 font-sans text-base leading-5 text-foreground placeholder:text-muted-foreground",
+          Platform.select({
+            web: cn(
+              "field-sizing-content resize-y outline-none",
+              disabled && "pointer-events-none cursor-not-allowed",
+            ),
+          }),
+          inputClassName,
+        )}
+        multiline={multiline}
+        numberOfLines={numberOfLines}
+        textAlignVertical="top"
+        {...props}
+        onFocus={(event) => {
+          reveal?.();
+          props.onFocus?.(event);
+        }}
+      />
+    </ShadowBox>
   );
 }
 

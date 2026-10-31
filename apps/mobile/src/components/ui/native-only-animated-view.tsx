@@ -1,3 +1,4 @@
+import type { ComponentProps, ReactNode, RefAttributes } from "react";
 import { Platform, Pressable } from "react-native";
 import Animated from "react-native-reanimated";
 
@@ -5,13 +6,13 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 function NativeOnlyAnimatedView(
   props:
-    | (React.ComponentProps<typeof Animated.View> &
-        React.RefAttributes<typeof Animated.View> & { as?: "View" })
-    | (React.ComponentProps<typeof AnimatedPressable> &
-        React.RefAttributes<typeof AnimatedPressable> & { as: "Pressable" }),
+    | (ComponentProps<typeof Animated.View> &
+        RefAttributes<typeof Animated.View> & { as?: "View" })
+    | (ComponentProps<typeof AnimatedPressable> &
+        RefAttributes<typeof AnimatedPressable> & { as: "Pressable" }),
 ) {
   if (Platform.OS === "web") {
-    return <>{props.children as React.ReactNode}</>;
+    return <>{props.children as ReactNode}</>;
   } else {
     if (props.as === "Pressable") {
       return <AnimatedPressable {...props} />;

@@ -1,58 +1,64 @@
+import { cva, type VariantProps } from "class-variance-authority";
+import { useContext, type ComponentProps, type RefAttributes } from "react";
+import {
+  Platform,
+  Pressable,
+  View,
+  type PressableStateCallbackType,
+} from "react-native";
+import { ButtonGroupContext } from "@/components/ui/button-group";
+import { ShadowBox, type ShadowSize } from "@/components/ui/shadow-box";
 import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
-import { cva, type VariantProps } from "class-variance-authority";
-import { Platform, Pressable } from "react-native";
+
+type ButtonProps = ComponentProps<typeof Pressable> &
+  RefAttributes<typeof Pressable> &
+  VariantProps<typeof buttonVariants> & {
+    shadowSize?: ShadowSize;
+    circle?: boolean;
+  };
+
+const SHADOW_VARIANTS = new Set([
+  "default",
+  "secondary",
+  "destructive",
+  "outline",
+]);
 
 const buttonVariants = cva(
   cn(
-    "group shrink-0 flex-row items-center justify-center gap-2 rounded-md shadow-none",
+    "flex-row items-center justify-center gap-2 rounded-md font-head font-medium",
     Platform.select({
-      web: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive whitespace-nowrap outline-none transition-all focus-visible:ring-[3px] disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+      web: "cursor-pointer select-none whitespace-nowrap outline-none transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-invalid:border-destructive disabled:pointer-events-none disabled:cursor-not-allowed [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
     }),
   ),
   {
     variants: {
       variant: {
-        default: cn(
-          "bg-primary active:bg-primary/90 shadow-sm shadow-black/5",
-          Platform.select({ web: "hover:bg-primary/90" }),
-        ),
-        destructive: cn(
-          "bg-destructive active:bg-destructive/90 dark:bg-destructive/60 shadow-sm shadow-black/5",
-          Platform.select({
-            web: "hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
-          }),
-        ),
-        outline: cn(
-          "border-border bg-background active:bg-accent dark:bg-input/30 dark:border-input dark:active:bg-input/50 border shadow-sm shadow-black/5",
-          Platform.select({
-            web: "hover:bg-accent dark:hover:bg-input/50",
-          }),
-        ),
-        secondary: cn(
-          "bg-secondary active:bg-secondary/80 shadow-sm shadow-black/5",
-          Platform.select({ web: "hover:bg-secondary/80" }),
-        ),
+        default: "border-2 border-border bg-primary text-primary-foreground",
+        secondary:
+          "border-2 border-border bg-secondary text-secondary-foreground",
+        destructive:
+          "border-2 border-border bg-destructive text-destructive-foreground",
+        outline: "border-2 border-border bg-transparent text-foreground",
         ghost: cn(
-          "active:bg-accent dark:active:bg-accent/50",
-          Platform.select({ web: "hover:bg-accent dark:hover:bg-accent/50" }),
+          "bg-transparent text-foreground",
+          Platform.select({ web: "hover:bg-accent" }),
         ),
-        link: "",
+        link: cn(
+          "bg-transparent text-foreground",
+          Platform.select({ web: "hover:underline" }),
+        ),
       },
       size: {
-        default: cn(
-          "h-10 px-4 py-2 sm:h-9",
-          Platform.select({ web: "has-[>svg]:px-3" }),
-        ),
-        sm: cn(
-          "h-9 gap-1.5 rounded-md px-3 sm:h-8",
-          Platform.select({ web: "has-[>svg]:px-2.5" }),
-        ),
-        lg: cn(
-          "h-11 rounded-md px-6 sm:h-10",
-          Platform.select({ web: "has-[>svg]:px-4" }),
-        ),
-        icon: "h-10 w-10 sm:h-9 sm:w-9",
+        default: "px-4 py-1.5",
+        xs: "px-2 py-0.5",
+        sm: "px-3 py-1",
+        lg: cn("px-6 py-2", Platform.select({ web: "lg:px-8 lg:py-3" })),
+        icon: "p-2",
+        "icon-xs": "p-1",
+        "icon-sm": "p-1.5",
+        "icon-lg": "p-3",
       },
     },
     defaultVariants: {
@@ -64,32 +70,31 @@ const buttonVariants = cva(
 
 const buttonTextVariants = cva(
   cn(
-    "text-foreground text-sm font-medium",
+    "font-head font-medium",
     Platform.select({ web: "pointer-events-none transition-colors" }),
   ),
   {
     variants: {
       variant: {
         default: "text-primary-foreground",
-        destructive: "text-white",
-        outline: cn(
-          "group-active:text-accent-foreground",
-          Platform.select({ web: "group-hover:text-accent-foreground" }),
-        ),
         secondary: "text-secondary-foreground",
-        ghost: "group-active:text-accent-foreground",
+        destructive: "text-destructive-foreground",
+        outline: "text-foreground",
+        ghost: "text-foreground",
         link: cn(
-          "text-primary group-active:underline",
-          Platform.select({
-            web: "underline-offset-4 hover:underline group-hover:underline",
-          }),
+          "text-foreground",
+          Platform.select({ web: "group-hover/button:underline" }),
         ),
       },
       size: {
-        default: "",
-        sm: "",
-        lg: "",
-        icon: "",
+        default: "text-base",
+        xs: "text-xs",
+        sm: "text-sm",
+        lg: cn("text-base", Platform.select({ web: "lg:text-lg" })),
+        icon: "text-base",
+        "icon-xs": "text-xs",
+        "icon-sm": "text-sm",
+        "icon-lg": "text-base",
       },
     },
     defaultVariants: {
@@ -99,22 +104,79 @@ const buttonTextVariants = cva(
   },
 );
 
-type ButtonProps = React.ComponentProps<typeof Pressable> &
-  React.RefAttributes<typeof Pressable> &
-  VariantProps<typeof buttonVariants>;
-
-function Button({ className, variant, size, ...props }: ButtonProps) {
+function Button({
+  className,
+  variant = "default",
+  size = "default",
+  shadowSize = "md",
+  circle = false,
+  disabled,
+  children,
+  ...props
+}: ButtonProps) {
+  const grouped = useContext(ButtonGroupContext);
+  const hasShadow = !grouped && SHADOW_VARIANTS.has(variant ?? "default");
+  const boxClassName = cn(
+    buttonVariants({ variant, size }),
+    grouped && "rounded-none border-0",
+    className,
+  );
+  function renderChildren(state: PressableStateCallbackType) {
+    return typeof children === "function" ? children(state) : children;
+  }
   return (
     <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
       <Pressable
-        className={cn(
-          props.disabled && "opacity-50",
-          buttonVariants({ variant, size }),
-          className,
-        )}
         role="button"
+        disabled={disabled}
+        className={cn(
+          "group/button",
+          disabled && "opacity-60",
+          !hasShadow && boxClassName,
+          grouped && "relative",
+        )}
         {...props}
-      />
+      >
+        {(state) =>
+          hasShadow ? (
+            <ShadowBox
+              size={shadowSize}
+              circle={circle}
+              pressed={state.pressed}
+              contentClassName={cn(
+                boxClassName,
+                Platform.select({
+                  web: "hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-lg",
+                }),
+              )}
+            >
+              {renderChildren(state)}
+            </ShadowBox>
+          ) : (
+            <>
+              {renderChildren(state)}
+              {grouped ? (
+                <View
+                  pointerEvents="none"
+                  className={cn(
+                    "absolute inset-0",
+                    variant === "secondary"
+                      ? "bg-secondary-foreground"
+                      : "bg-foreground",
+                  )}
+                  style={{
+                    opacity: state.pressed
+                      ? variant === "secondary"
+                        ? 0.4
+                        : 0.25
+                      : 0,
+                  }}
+                />
+              ) : null}
+            </>
+          )
+        }
+      </Pressable>
     </TextClassContext.Provider>
   );
 }

@@ -1,33 +1,29 @@
+import { cva, type VariantProps } from "class-variance-authority";
+import { useContext, type ComponentProps } from "react";
+import { Platform, type PressableStateCallbackType } from "react-native";
+import * as TogglePrimitive from "@rn-primitives/toggle";
 import { Icon } from "@/components/ui/icon";
+import { ShadowBox } from "@/components/ui/shadow-box";
 import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
-import * as TogglePrimitive from "@rn-primitives/toggle";
-import { cva, type VariantProps } from "class-variance-authority";
-import * as React from "react";
-import { Platform } from "react-native";
 
 const toggleVariants = cva(
   cn(
-    "active:bg-muted group flex flex-row items-center justify-center gap-2 rounded-md",
+    "flex-row items-center justify-center gap-1 rounded-md border-2 border-border",
     Platform.select({
-      web: "hover:bg-muted hover:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex cursor-default whitespace-nowrap outline-none transition-[color,box-shadow] focus-visible:ring-[3px] disabled:pointer-events-none [&_svg]:pointer-events-none",
+      web: "inline-flex cursor-pointer whitespace-nowrap outline-none transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:pointer-events-none aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0",
     }),
   ),
   {
     variants: {
       variant: {
-        default: "bg-transparent",
-        outline: cn(
-          "border-input active:bg-accent border bg-transparent shadow-sm shadow-black/5",
-          Platform.select({
-            web: "hover:bg-accent hover:text-accent-foreground",
-          }),
-        ),
+        default: "",
+        outline: "",
       },
       size: {
-        default: "h-10 min-w-10 px-2.5 sm:h-9 sm:min-w-9 sm:px-2",
-        sm: "h-9 min-w-9 px-2 sm:h-8 sm:min-w-8 sm:px-1.5",
-        lg: "h-11 min-w-11 px-3 sm:h-10 sm:min-w-10 sm:px-2.5",
+        default: "min-h-10 min-w-10 px-2.5",
+        sm: "min-h-9 min-w-9 px-2",
+        lg: "min-h-11 min-w-11 px-3",
       },
     },
     defaultVariants: {
@@ -41,37 +37,44 @@ function Toggle({
   className,
   variant,
   size,
+  circle = false,
+  children,
   ...props
-}: React.ComponentProps<typeof TogglePrimitive.Root> &
-  VariantProps<typeof toggleVariants>) {
+}: ComponentProps<typeof TogglePrimitive.Root> &
+  VariantProps<typeof toggleVariants> & { circle?: boolean }) {
   return (
     <TextClassContext.Provider
       value={cn(
-        "text-sm text-foreground font-medium",
-        props.pressed
-          ? "text-accent-foreground"
-          : Platform.select({ web: "group-hover:text-muted-foreground" }),
-        className,
+        "font-head text-sm font-medium",
+        props.pressed ? "text-primary-foreground" : "text-foreground",
       )}
     >
       <TogglePrimitive.Root
-        className={cn(
-          toggleVariants({ variant, size }),
-          props.disabled && "opacity-50",
-          props.pressed && "bg-accent",
-          className,
-        )}
+        className={cn("group", props.disabled && "opacity-50")}
         {...props}
-      />
+      >
+        {(state: PressableStateCallbackType) => (
+          <ShadowBox
+            size="md"
+            circle={circle}
+            pressed={state.pressed}
+            contentClassName={cn(
+              toggleVariants({ variant, size }),
+              props.pressed ? "bg-primary" : "bg-background",
+              circle && "rounded-full",
+              className,
+            )}
+          >
+            <>{typeof children === "function" ? children(state) : children}</>
+          </ShadowBox>
+        )}
+      </TogglePrimitive.Root>
     </TextClassContext.Provider>
   );
 }
 
-function ToggleIcon({
-  className,
-  ...props
-}: React.ComponentProps<typeof Icon>) {
-  const textClass = React.useContext(TextClassContext);
+function ToggleIcon({ className, ...props }: ComponentProps<typeof Icon>) {
+  const textClass = useContext(TextClassContext);
   return (
     <Icon className={cn("size-4 shrink-0", textClass, className)} {...props} />
   );

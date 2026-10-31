@@ -1,13 +1,17 @@
-import { cn } from "@/lib/utils";
+import type { ComponentProps, RefAttributes } from "react";
 import { View } from "react-native";
+import { cn } from "@/lib/utils";
 
 function Skeleton({
   className,
   ...props
-}: React.ComponentProps<typeof View> & React.RefAttributes<View>) {
+}: ComponentProps<typeof View> & RefAttributes<View>) {
   return (
     <View
-      className={cn("bg-accent animate-pulse rounded-md", className)}
+      className={cn(
+        "animate-pulse rounded-md border-2 border-border bg-muted",
+        className,
+      )}
       {...props}
     />
   );
