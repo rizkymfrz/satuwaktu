@@ -12,6 +12,22 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, "node_modules"),
 ];
 
+const upstreamResolveRequest = config.resolver.resolveRequest;
+
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (platform === "web" && moduleName === "react-native-maps") {
+    return {
+      type: "sourceFile",
+      filePath: path.resolve(projectRoot, "src/lib/react-native-maps-web.tsx"),
+    };
+  }
+  return (upstreamResolveRequest ?? context.resolveRequest)(
+    context,
+    moduleName,
+    platform,
+  );
+};
+
 module.exports = withNativeWind(config, {
   input: "./src/global.css",
   inlineRem: 16,
