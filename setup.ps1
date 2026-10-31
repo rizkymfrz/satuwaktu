@@ -77,9 +77,10 @@ Step 'Applying migrations'
 Invoke-Native { pnpm --filter '@repo/db' db:deploy }
 Step 'Seeding'
 Invoke-Native { pnpm --filter '@repo/db' db:seed }
-Step 'Building (except web and mobile)'
-Invoke-Native { pnpm exec turbo run build --ui=stream --filter='!web' --filter='!mobile' }
+Step 'Building (except mobile)'
+Invoke-Native { pnpm exec turbo run build --ui=stream --filter='!mobile' }
 Step 'Done'
 Write-Host 'API:    pnpm --filter api start:dev'
 Write-Host 'Web:    pnpm --filter web dev'
 Write-Host 'Mobile: pnpm --filter mobile start'
+Write-Host 'All:    pm2 startOrReload ecosystem.config.cjs; pm2 save'

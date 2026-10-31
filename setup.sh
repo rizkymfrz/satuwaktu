@@ -65,9 +65,10 @@ step "Applying migrations"
 pnpm --filter @repo/db db:deploy
 step "Seeding"
 pnpm --filter @repo/db db:seed
-step "Building (except web and mobile)"
-pnpm exec turbo run build --ui=stream --filter='!web' --filter='!mobile'
+step "Building (except mobile)"
+pnpm exec turbo run build --ui=stream --filter='!mobile'
 step "Done"
 echo "API:    pnpm --filter api start:dev"
 echo "Web:    pnpm --filter web dev"
 echo "Mobile: pnpm --filter mobile start"
+echo "All:    pm2 startOrReload ecosystem.config.cjs && pm2 save"
