@@ -1,5 +1,7 @@
-import type { Region } from "react-native-maps";
+import type { InitialViewState } from "@maplibre/maplibre-react-native";
 import type { Fragment } from "@/features/archive/types";
+
+type LatLng = { latitude: number; longitude: number };
 
 type Pin = {
   id: string;
@@ -10,13 +12,10 @@ type Pin = {
 };
 
 const PIN_RADIUS = 0.004;
-
-const INDONESIA_REGION: Region = {
-  latitude: -2.5,
-  longitude: 118,
-  latitudeDelta: 30,
-  longitudeDelta: 40,
-};
+const FOCUS_ZOOM = 14;
+const MIN_SPAN_DEGREES = 0.02;
+const FIT_MARGIN = 1.5;
+const INDONESIA_VIEW: InitialViewState = { bounds: [95, -11, 141, 6] };
 
 function groupPins(fragments: Fragment[]): Pin[] {
   const pins: Pin[] = [];
@@ -51,9 +50,9 @@ function groupPins(fragments: Fragment[]): Pin[] {
   return pins;
 }
 
-function fitRegion(points: { latitude: number; longitude: number }[]) {
+function fitView(points: LatLng[]): InitialViewState {
   if (points.length === 0) {
-    return INDONESIA_REGION;
+    return INDONESIA_VIEW;
   }
   const latitudes = points.map((point) => point.latitude);
   const longitudes = points.map((point) => point.longitude);
@@ -61,27 +60,25 @@ function fitRegion(points: { latitude: number; longitude: number }[]) {
   const maxLat = Math.max(...latitudes);
   const minLng = Math.min(...longitudes);
   const maxLng = Math.max(...longitudes);
+  const centerLat = (minLat + maxLat) / 2;
+  const centerLng = (minLng + maxLng) / 2;
+  const halfLat =
+    Math.max((maxLat - minLat) * FIT_MARGIN, MIN_SPAN_DEGREES) / 2;
+  const halfLng =
+    Math.max((maxLng - minLng) * FIT_MARGIN, MIN_SPAN_DEGREES) / 2;
   return {
-    latitude: (minLat + maxLat) / 2,
-    longitude: (minLng + maxLng) / 2,
-    latitudeDelta: Math.max((maxLat - minLat) * 1.5, 0.02),
-    longitudeDelta: Math.max((maxLng - minLng) * 1.5, 0.02),
-  } satisfies Region;
-}
-
-function zoomToRegion(
-  latitude: number,
-  longitude: number,
-  zoom: number,
-): Region {
-  const delta = 360 / Math.pow(2, zoom);
-  return {
-    latitude,
-    longitude,
-    latitudeDelta: delta,
-    longitudeDelta: delta,
+    bounds: [
+      centerLng - halfLng,
+      centerLat - halfLat,
+      centerLng + halfLng,
+      centerLat + halfLat,
+    ],
   };
 }
 
-export { fitRegion, groupPins, INDONESIA_REGION, zoomToRegion };
-export type { Pin };
+function focusView(latitude: number, longitude: number): InitialViewState {
+  return { center: [longitude, latitude], zoom: FOCUS_ZOOM };
+}
+
+export { fitView, FOCUS_ZOOM, focusView, groupPins, INDONESIA_VIEW };
+export type { LatLng, Pin };

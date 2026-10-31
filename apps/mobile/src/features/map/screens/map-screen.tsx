@@ -1,11 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Camera, Map } from "@maplibre/maplibre-react-native";
 import { useState } from "react";
 import { View } from "react-native";
-import MapView from "react-native-maps";
 import { useChapters } from "@repo/sdk";
 import { Screen } from "@/components/layout/screen";
 import { SnapDrawer } from "@/components/layout/snap-drawer";
 import { PinMarker } from "@/components/map/map-markers";
+import { MAP_STYLE_URL } from "@/components/map/map-style";
 import { ChapterFilter } from "@/features/archive/components/chapter-filter";
 import type { Fragment } from "@/features/archive/types";
 import { MapEmptyCard } from "@/features/map/components/map-empty-card";
@@ -39,7 +40,7 @@ function MapContent({
     setSelectedId,
     located,
     pins,
-    initialRegion,
+    initialView,
     selectedPin,
     selectedFragment,
     noLocations,
@@ -51,15 +52,15 @@ function MapContent({
   return (
     <Screen title="Peta Kenangan" back>
       <View className="flex-1">
-        <MapView
+        <Map
           key={attempt}
           style={{ flex: 1 }}
-          initialRegion={initialRegion}
-          onMapReady={onMapReady}
-          toolbarEnabled={false}
-          rotateEnabled={false}
-          pitchEnabled={false}
+          mapStyle={MAP_STYLE_URL}
+          onDidFinishLoadingMap={onMapReady}
+          touchRotate={false}
+          touchPitch={false}
         >
+          <Camera initialViewState={initialView} />
           {located.map((fragment) =>
             fragment.location ? (
               <PinMarker
@@ -73,7 +74,7 @@ function MapContent({
               />
             ) : null,
           )}
-        </MapView>
+        </Map>
         <View className="absolute inset-x-0 top-2" pointerEvents="box-none">
           <ChapterFilter
             chapters={chapters}

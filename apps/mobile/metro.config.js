@@ -15,10 +15,10 @@ config.resolver.nodeModulesPaths = [
 const upstreamResolveRequest = config.resolver.resolveRequest;
 
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (platform === "web" && moduleName === "react-native-maps") {
+  if (platform === "web" && moduleName === "@maplibre/maplibre-react-native") {
     return {
       type: "sourceFile",
-      filePath: path.resolve(projectRoot, "src/lib/react-native-maps-web.tsx"),
+      filePath: path.resolve(projectRoot, "src/lib/maplibre-web.tsx"),
     };
   }
   return (upstreamResolveRequest ?? context.resolveRequest)(

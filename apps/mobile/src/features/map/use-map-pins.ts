@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { fitRegion, groupPins, zoomToRegion } from "@/components/map/geo";
+import { fitView, focusView, groupPins } from "@/components/map/geo";
 import type { Fragment } from "@/features/archive/types";
 
 function useMapPins(fragments: Fragment[], focus: string | undefined) {
@@ -13,14 +13,14 @@ function useMapPins(fragments: Fragment[], focus: string | undefined) {
     [fragments, chapter],
   );
   const pins = useMemo(() => groupPins(located), [located]);
-  const [initialRegion] = useState(() => {
+  const [initialView] = useState(() => {
     const target = focus
       ? fragments.find((fragment) => fragment.id === focus)?.location
       : null;
     if (target) {
-      return zoomToRegion(target.latitude, target.longitude, 14);
+      return focusView(target.latitude, target.longitude);
     }
-    return fitRegion(
+    return fitView(
       fragments.flatMap((fragment) =>
         fragment.location ? [fragment.location] : [],
       ),
@@ -40,7 +40,7 @@ function useMapPins(fragments: Fragment[], focus: string | undefined) {
     setSelectedId,
     located,
     pins,
-    initialRegion,
+    initialView,
     selectedPin,
     selectedFragment,
     noLocations,

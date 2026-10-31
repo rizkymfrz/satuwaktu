@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo-google-fonts/archivo-black": "^0.4.1",
     "@expo-google-fonts/space-grotesk": "^0.4.1",
+    "@maplibre/maplibre-react-native": "^11.5.1",
     "@repo/dto": "workspace:*",
     "@repo/sdk": "workspace:*",
     "@rn-primitives/accordion": "^1.5.2",
@@ -38,6 +39,7 @@
     "expo": "~58.0.21",
     "expo-asset": "~58.0.19",
     "expo-audio": "~58.0.10",
+    "expo-build-properties": "~58.0.11",
     "expo-constants": "~58.0.14",
     "expo-crypto": "~58.0.7",
     "expo-font": "~58.0.11",
@@ -58,7 +60,6 @@
     "react-native": "0.88.1",
     "react-native-css-interop": "0.2.6",
     "react-native-gesture-handler": "~3.3.0",
-    "react-native-maps": "1.29.11",
     "react-native-reanimated": "4.7.1",
     "react-native-safe-area-context": "~5.10.1",
     "react-native-screens": "~4.30.0",
@@ -81,6 +82,7 @@
     "vitest": "^4.1.2"
   },
   "scripts": {
+    "eas-build-post-install": "pnpm --filter \"@repo/sdk...\" build",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",

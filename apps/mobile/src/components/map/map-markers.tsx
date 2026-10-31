@@ -1,13 +1,12 @@
 import { MapPin, Star } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { Marker } from "@maplibre/maplibre-react-native";
 import { View } from "react-native";
-import { Marker, type LatLng } from "react-native-maps";
+import type { LatLng } from "@/components/map/geo";
 import { Icon } from "@/components/ui/icon";
 import type { Fragment } from "@/features/archive/types";
 import { PALETTE } from "@/theme/palette";
 import { Space } from "@/theme/space";
 
-const SETTLE_MS = 800;
 const SHADOW = Space.sm;
 const PIN_SIZE = 44;
 const SELECTED_PIN_SIZE = 56;
@@ -71,15 +70,6 @@ function PinShape({
   );
 }
 
-function useSettled(key = false) {
-  const [settledKey, setSettledKey] = useState<boolean | null>(null);
-  useEffect(() => {
-    const timer = setTimeout(() => setSettledKey(key), SETTLE_MS);
-    return () => clearTimeout(timer);
-  }, [key]);
-  return settledKey !== key;
-}
-
 function PinMarker({
   fragment,
   selected,
@@ -89,21 +79,16 @@ function PinMarker({
   selected: boolean;
   onPress: () => void;
 }) {
-  const tracking = useSettled(selected);
   const location = fragment.location;
   if (!location) {
     return null;
   }
   return (
     <Marker
-      coordinate={{
-        latitude: location.latitude,
-        longitude: location.longitude,
-      }}
-      tracksViewChanges={tracking}
+      lngLat={[location.longitude, location.latitude]}
       onPress={onPress}
-      anchor={{ x: 0.5, y: 0.95 }}
-      zIndex={selected ? SELECTED_Z_INDEX : 0}
+      anchor="bottom"
+      style={{ zIndex: selected ? SELECTED_Z_INDEX : 0 }}
       accessibilityLabel={fragment.caption || location.name || "Fragmen"}
     >
       <PinShape
@@ -116,12 +101,10 @@ function PinMarker({
 }
 
 function DraftMarker({ coordinate }: { coordinate: LatLng }) {
-  const tracking = useSettled();
   return (
     <Marker
-      coordinate={coordinate}
-      tracksViewChanges={tracking}
-      anchor={{ x: 0.5, y: 0.95 }}
+      lngLat={[coordinate.longitude, coordinate.latitude]}
+      anchor="bottom"
       accessibilityLabel="Lokasi dipilih"
     >
       <PinShape size={PIN_SIZE} fill={PALETTE.light.primary} />

@@ -1,12 +1,13 @@
 import * as Location from "expo-location";
 import { Check, LocateFixed } from "lucide-react-native";
+import { Camera, Map, type CameraRef } from "@maplibre/maplibre-react-native";
 import { useRef, useState } from "react";
 import { View } from "react-native";
-import MapView, { type LatLng } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SnapDrawer } from "@/components/layout/snap-drawer";
-import { INDONESIA_REGION, zoomToRegion } from "@/components/map/geo";
+import { FOCUS_ZOOM, INDONESIA_VIEW, type LatLng } from "@/components/map/geo";
 import { DraftMarker } from "@/components/map/map-markers";
+import { MAP_STYLE_URL } from "@/components/map/map-style";
 import { TapedPaper } from "@/components/scrapbook/taped-paper";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -25,7 +26,7 @@ function LocationPicker({
   onConfirm: (point: LatLng) => void;
 }) {
   const insets = useSafeAreaInsets();
-  const mapRef = useRef<MapView>(null);
+  const cameraRef = useRef<CameraRef>(null);
   const [point, setPoint] = useState<LatLng | null>(null);
   const [locating, setLocating] = useState(false);
   const close = () => {
@@ -45,10 +46,11 @@ function LocationPicker({
       const position = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
-      mapRef.current?.animateToRegion(
-        zoomToRegion(position.coords.latitude, position.coords.longitude, 14),
-        400,
-      );
+      cameraRef.current?.easeTo({
+        center: [position.coords.longitude, position.coords.latitude],
+        zoom: FOCUS_ZOOM,
+        duration: 400,
+      });
     } catch {
       toast.error(
         "Lokasi perangkat tidak bisa dibaca. Pilih titik secara manual.",
@@ -82,17 +84,20 @@ function LocationPicker({
       }
     >
       <View className="flex-1 border-t-2 border-border">
-        <MapView
-          ref={mapRef}
+        <Map
           style={{ flex: 1 }}
-          initialRegion={INDONESIA_REGION}
-          onPress={(event) => setPoint(event.nativeEvent.coordinate)}
-          toolbarEnabled={false}
-          rotateEnabled={false}
-          pitchEnabled={false}
+          mapStyle={MAP_STYLE_URL}
+          androidView="texture"
+          onPress={(event) => {
+            const [longitude, latitude] = event.nativeEvent.lngLat;
+            setPoint({ latitude, longitude });
+          }}
+          touchRotate={false}
+          touchPitch={false}
         >
+          <Camera ref={cameraRef} initialViewState={INDONESIA_VIEW} />
           {point ? <DraftMarker coordinate={point} /> : null}
-        </MapView>
+        </Map>
         <View className="absolute right-4 top-4">
           <Button
             variant="outline"
