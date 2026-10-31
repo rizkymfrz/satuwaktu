@@ -7,5 +7,10 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
+    env: {
+      JWT_SECRET: 'test-secret-test-secret-test-secret-123',
+      DATABASE_URL:
+        'postgresql://postgres:postgres@localhost:5432/satuwaktu_test?schema=public',
+    },
   },
 });
