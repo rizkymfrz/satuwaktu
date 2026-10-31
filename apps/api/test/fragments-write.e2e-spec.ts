@@ -2,6 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import { Global, Module } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
+import { MAX_UPLOAD_BYTES } from '@repo/dto';
 import { mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -98,7 +99,7 @@ describe('Fragment writes and media (e2e)', () => {
       await request(app.getHttpServer())
         .post('/v1/uploads/photos')
         .set('Authorization', await ownerAuth())
-        .attach('file', Buffer.alloc(11 * 1024 * 1024), 'big.png')
+        .attach('file', Buffer.alloc(MAX_UPLOAD_BYTES + 1), 'big.png')
         .expect(413);
     });
 
