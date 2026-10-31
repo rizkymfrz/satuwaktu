@@ -1,9 +1,9 @@
 import { MapPin, Star } from "lucide-react-native";
-import { Marker } from "@maplibre/maplibre-react-native";
 import { View } from "react-native";
 import type { LatLng } from "@/components/map/geo";
 import { Icon } from "@/components/ui/icon";
 import type { Fragment } from "@/features/archive/types";
+import { Marker } from "@/lib/maplibre";
 import { PALETTE } from "@/theme/palette";
 import { Space } from "@/theme/space";
 

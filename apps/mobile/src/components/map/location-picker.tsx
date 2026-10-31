@@ -1,6 +1,5 @@
 import * as Location from "expo-location";
 import { Check, LocateFixed } from "lucide-react-native";
-import { Camera, Map, type CameraRef } from "@maplibre/maplibre-react-native";
 import { useRef, useState } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,6 +13,7 @@ import { Icon } from "@/components/ui/icon";
 import { toast } from "@/components/ui/sonner";
 import { Text } from "@/components/ui/text";
 import { TypographyH4, TypographyMuted } from "@/components/ui/typography";
+import { Camera, Map, type CameraRef } from "@/lib/maplibre";
 import { Space } from "@/theme/space";
 
 function LocationPicker({

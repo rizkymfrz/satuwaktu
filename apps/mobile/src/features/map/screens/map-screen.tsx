@@ -1,5 +1,4 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Camera, Map } from "@maplibre/maplibre-react-native";
 import { useState } from "react";
 import { View } from "react-native";
 import { useChapters } from "@repo/sdk";
@@ -18,6 +17,7 @@ import { PinDrawerHeader } from "@/features/map/components/pin-drawer-header";
 import { useLocatedFragments } from "@/features/map/use-located-fragments";
 import { useMapLoad } from "@/features/map/use-map-load";
 import { useMapPins } from "@/features/map/use-map-pins";
+import { Camera, Map } from "@/lib/maplibre";
 
 function MapContent({
   fragments,

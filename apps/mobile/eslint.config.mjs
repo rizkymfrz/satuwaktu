@@ -88,6 +88,10 @@ export default defineConfig([
     rules: { "react-hooks/refs": "off" },
   },
   {
+    files: ["src/lib/maplibre.ts"],
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
+  {
     files: ["src/dev/**/*.{ts,tsx}", "src/app/showcase.tsx"],
     rules: {
       "no-unused-vars": "off",
